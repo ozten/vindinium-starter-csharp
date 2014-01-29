@@ -5,7 +5,7 @@ Code by Mark Tanner
 
 ## Run with
 
-    client <key> <[training|arena]> <number-of-games-to-play> [server-url]
+    client <key> <[training|arena]> <number-of-turns> [server-url]
 
 ## Examples:
 

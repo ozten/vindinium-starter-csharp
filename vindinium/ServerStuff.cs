@@ -27,14 +27,16 @@ namespace vindinium
         public bool finished { get; private set; }
         public bool errored { get; private set; }
         public string errorText { get; private set; }
+        private string serverURL;
 
         public Tile[][] board { get; private set; }
 
-        //if training mode is false, turns and map are ignored
-        public ServerStuff(string key, bool trainingMode, uint turns, string map)
+        //if training mode is false, turns and map are ignored8
+        public ServerStuff(string key, bool trainingMode, uint turns, string serverURL, string map)
         {
             this.key = key;
             this.trainingMode = trainingMode;
+            this.serverURL = serverURL;
 
             //the reaons im doing the if statement here is so that i dont have to do it later
             if (trainingMode)
@@ -53,11 +55,11 @@ namespace vindinium
             
             if (trainingMode)
             {
-                uri = "http://vindinium.org/api/training";
+                uri = serverURL + "/api/training";
             }
             else
             {
-                uri = "http://vindinium.org/api/arena";
+                uri = serverURL + "/api/arena";
             }
 
             string myParameters = "key=" + key;

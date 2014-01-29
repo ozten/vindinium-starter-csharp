@@ -8,7 +8,7 @@
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>vindinium</RootNamespace>
-    <AssemblyName>vindinium</AssemblyName>
+    <AssemblyName>client</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -44,7 +44,7 @@
   <ItemGroup>
     <Compile Include="DataContracts.cs" />
     <Compile Include="Enums.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="Client.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RandomBot.cs" />
     <Compile Include="ServerStuff.cs" />

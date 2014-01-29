@@ -22,12 +22,15 @@ namespace vindinium
             Console.Out.WriteLine("random bot running");
 
             serverStuff.createGame();
-            
-            //opens up a webpage so you can view the game, doing it async so we dont time out
-            new Thread(delegate()
+
+            if (serverStuff.errored == false)
             {
-                System.Diagnostics.Process.Start(serverStuff.viewURL);
-            }).Start();
+                //opens up a webpage so you can view the game, doing it async so we dont time out
+                new Thread(delegate()
+                {
+                    System.Diagnostics.Process.Start(serverStuff.viewURL);
+                }).Start();
+            }
             
             Random random = new Random();
             while (serverStuff.finished == false && serverStuff.errored == false)
