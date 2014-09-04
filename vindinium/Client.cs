@@ -1,37 +1,35 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace vindinium
+namespace Vindinium
 {
-    class Client
-    {
-        /**
-         * Launch client.
-         * @param args args[0] Private key
-         * @param args args[1] [training|arena]
-         * @param args args[2] number of turns
-         * @param args args[3] HTTP URL of Vindinium server (optional)
-         */
-        static void Main(string[] args)
-        {
-            string serverURL = args.Length == 4 ? args[3] : "http://vindinium.org";
+	internal class Client
+	{
+		private static void Main(string[] args)
+		{
+			Console.Out.WriteLine("Starting...");
+			args = new[] { "my secret key", "training", "30" };
+			var serverUrl = args.Length == 4 ? args[3] : "http://vindinium.org";
+			var key = args[0];
+			var mode = args[1];
+			var turns = args[2];
+			var gameManager = new GameManager(key, mode != "arena", uint.Parse(turns), serverUrl, null);
+			var bot = new RandomBot();
 
-            //create the server stuff, when not in training mode, it doesnt matter
-            //what you use as the number of turns
-            ServerStuff serverStuff = new ServerStuff(args[0], args[1] != "arena", uint.Parse(args[2]), serverURL, null);
+			gameManager.StartNewGame();
+			Console.Out.WriteLine("Watch the game: {0}", gameManager.ViewUrl);
 
-            //create the random bot, replace this with your own bot
-            RandomBot bot = new RandomBot(serverStuff);
-
-            //now kick it all off by running the bot.
-            bot.run();
-
-            Console.Out.WriteLine("done");
-
-            Console.Read();
-        }
-    }
+			
+			while (gameManager.Finished == false && gameManager.GameHasError == false)
+			{
+				var nextMove = bot.DetermineNextMove();
+				gameManager.MoveHero(nextMove);
+			}
+			if(gameManager.GameHasError)
+			{
+				Console.Out.WriteLine("Error: {0}", gameManager.GameErrorMessage);
+			}
+			Console.Out.WriteLine("done");
+			Console.Read();
+		}
+	}
 }
