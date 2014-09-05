@@ -7,15 +7,22 @@ namespace Vindinium
 		private static void Main(string[] args)
 		{
 			Console.Out.WriteLine("Starting...");
-			args = new[] { "my secret key", "training", "30" };
+			args = new[] { "xxxx", "training", "30" };
 			var serverUrl = args.Length == 4 ? args[3] : "http://vindinium.org";
-			var key = args[0];
-			var mode = args[1];
-			var turns = args[2];
-			var gameManager = new GameManager(key, mode != "arena", uint.Parse(turns), serverUrl, null);
+
+			var apiEndpoints = new ApiEndpoints(serverUrl, args[0]);
+			var gameManager = new GameManager(new ApiCaller(), apiEndpoints);
 			var bot = new RandomBot();
 
-			gameManager.StartNewGame();
+			if(args[1] == "arena")
+			{
+				gameManager.StartArena();
+			}
+			else
+			{
+				gameManager.StartTraining(uint.Parse(args[2]));
+			}
+
 			Console.Out.WriteLine("Watch the game: {0}", gameManager.ViewUrl);
 
 			

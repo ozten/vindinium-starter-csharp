@@ -1,4 +1,4 @@
-namespace Vindinium
+namespace Vindinium.Interfaces
 {
 	public enum Direction
 	{

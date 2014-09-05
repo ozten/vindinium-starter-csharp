@@ -3,29 +3,22 @@ using System.IO;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using Vindinium.Contracts;
+using Vindinium.Interfaces;
 
 namespace Vindinium
 {
 	internal class GameManager
 	{
-		private readonly string _map;
-		private readonly string _secretKey;
-		private readonly string _serverUrl;
-		private readonly bool _trainingMode;
-		private readonly uint _turns;
+		private readonly IApiCaller _apiCaller;
+		private readonly IApiEndpoints _apiEndpoints;
 
 		private string _playUrl;
-
-		public GameManager(string secretKey, bool trainingMode, uint turns, string serverUrl, string map)
+		public GameManager(IApiCaller apiCaller, IApiEndpoints apiEndpoints)
 		{
-			_secretKey = secretKey;
-			_trainingMode = trainingMode;
-			_serverUrl = serverUrl;
-
-			if (!trainingMode) return;
-			_turns = turns;
-			_map = map;
+			_apiCaller = apiCaller;
+			_apiEndpoints = apiEndpoints;
 		}
+
 
 		public string ViewUrl { get; private set; }
 
@@ -42,47 +35,39 @@ namespace Vindinium
 		public Board Board { get; private set; }
 		public Board PreviousBoard { get; private set; }
 
-		public void StartNewGame()
+		public void StartArena()
 		{
 			GameHasError = false;
 			GameErrorMessage = null;
-			string uri = string.Format("{0}/api/{1}", _serverUrl, _trainingMode ? "training" : "arena");
-			var sb = new StringBuilder();
-			sb.AppendFormat("key={0}", _secretKey);
-			if (_trainingMode) sb.AppendFormat("&turns={0}", _turns);
-			if (!string.IsNullOrWhiteSpace(_map)) sb.AppendFormat("&map={0}", _map);
-			WebIoResponse response = WebIo.Get(uri, sb.ToString());
+			var response = _apiCaller.Get(_apiEndpoints.StartArena());
+			ProcessResponse(response);
+		}
+		
+		public void StartTraining(uint turns = 30)
+		{
+			GameHasError = false;
+			GameErrorMessage = null;
+			var response = _apiCaller.Get(_apiEndpoints.StartTraining(turns));
 			ProcessResponse(response);
 		}
 
-		private void Deserialize(string json)
+		private GameResponse Deserialize(string json)
 		{
 			byte[] byteArray = Encoding.UTF8.GetBytes(json);
 			using (var stream = new MemoryStream(byteArray))
 			{
 				var ser = new DataContractJsonSerializer(typeof (GameResponse));
-				var gameResponse = (GameResponse) ser.ReadObject(stream);
-				PreviousHeroes = Heroes;
-				PreviousBoard = Board;
-				_playUrl = gameResponse.PlayUrl;
-				ViewUrl = gameResponse.ViewUrl;
-				MyHero = gameResponse.Hero;
-				Heroes = gameResponse.Game.Heroes;
-				CurrentTurn = gameResponse.Game.Turn;
-				MaxTurns = gameResponse.Game.MaxTurns;
-				Finished = gameResponse.Game.Finished;
-				Board = gameResponse.Game.Board;
+				return ser.ReadObject(stream) as GameResponse;
 			}
 		}
 
 		public void MoveHero(Direction direction)
 		{
-			string parameters = string.Format("key={0}&dir={1}", _secretKey, direction);
-			WebIoResponse response = WebIo.Get(_playUrl, parameters);
+			var response = _apiCaller.Get(_apiEndpoints.Play(_playUrl, direction));
 			ProcessResponse(response);
 		}
 
-		private void ProcessResponse(WebIoResponse result)
+		private void ProcessResponse(IApiResponse result)
 		{
 			if (result.HasError)
 			{
@@ -91,7 +76,20 @@ namespace Vindinium
 			}
 			else
 			{
-				Deserialize(result.Text);
+				var gameResponse = Deserialize(result.Text);
+				PreviousHeroes = Heroes;
+				PreviousBoard = Board;
+				_playUrl = gameResponse.PlayUrl;
+				ViewUrl = gameResponse.ViewUrl;
+				MyHero = gameResponse.Hero;
+
+				Game game = gameResponse.Game;
+
+				Heroes = game.Heroes;
+				CurrentTurn = game.Turn;
+				MaxTurns = game.MaxTurns;
+				Finished = game.Finished;
+				Board = game.Board;
 			}
 		}
 	}

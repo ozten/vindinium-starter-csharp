@@ -47,7 +47,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -61,21 +62,28 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApiRequest.cs" />
     <Compile Include="Client.cs" />
     <Compile Include="Contracts\Board.cs" />
-    <Compile Include="Direction.cs" />
     <Compile Include="Contracts\Game.cs" />
     <Compile Include="Contracts\GameResponse.cs" />
     <Compile Include="Contracts\Hero.cs" />
     <Compile Include="Contracts\Pos.cs" />
-    <Compile Include="WebIo.cs" />
-    <Compile Include="WebIoResponse.cs" />
+    <Compile Include="ApiEndpoints.cs" />
+    <Compile Include="ApiCaller.cs" />
+    <Compile Include="ApiResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RandomBot.cs" />
     <Compile Include="GameManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Vindinium.Interfaces\Vindinium.Interfaces.csproj">
+      <Project>{32FE6E9F-2408-4D72-9AF6-60DD4D443825}</Project>
+      <Name>Vindinium.Interfaces</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
