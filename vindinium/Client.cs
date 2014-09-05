@@ -7,11 +7,11 @@ namespace Vindinium
 		private static void Main(string[] args)
 		{
 			Console.Out.WriteLine("Starting...");
-			args = new[] { "xxxxxx", "training", "30" };
+			args = new[] { "", "training", "30" };
 			var serverUrl = args.Length == 4 ? args[3] : "http://vindinium.org";
 
 			var apiEndpoints = new ApiEndpointBuilder(serverUrl, args[0]);
-			var gameManager = new GameManager(new ApiCaller(), apiEndpoints);
+			var gameManager = new GameManager(new ApiCaller(), apiEndpoints, new JsonDeserializer());
 			var bot = new RandomBot();
 
 			if(args[1] == "arena")

@@ -67,6 +67,7 @@
     <Compile Include="ApiEndpointBuilder.cs" />
     <Compile Include="ApiCaller.cs" />
     <Compile Include="ApiResponse.cs" />
+    <Compile Include="JsonDeserializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RandomBot.cs" />
     <Compile Include="GameManager.cs" />

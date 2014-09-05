@@ -1,7 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO;
-using System.Runtime.Serialization.Json;
-using System.Text;
 using Vindinium.Common;
 using Vindinium.Common.DataStructure;
 using Vindinium.Common.Entities;
@@ -13,14 +10,16 @@ namespace Vindinium
 	{
 		private readonly IApiCaller _apiCaller;
 		private readonly IApiEndpointBuilder _apiEndpointBuilder;
+		private readonly IJsonDeserializer _jsonDeserializer;
 
 		private string _playUrl;
-		public GameManager(IApiCaller apiCaller, IApiEndpointBuilder apiEndpointBuilder)
+
+		public GameManager(IApiCaller apiCaller, IApiEndpointBuilder apiEndpointBuilder, IJsonDeserializer jsonDeserializer)
 		{
 			_apiCaller = apiCaller;
 			_apiEndpointBuilder = apiEndpointBuilder;
+			_jsonDeserializer = jsonDeserializer;
 		}
-
 
 		public string ViewUrl { get; private set; }
 
@@ -37,48 +36,41 @@ namespace Vindinium
 		public Board Board { get; private set; }
 		public Board PreviousBoard { get; private set; }
 
-		public void StartArena()
+		private void Start(IApiRequest apiRequest)
 		{
 			GameHasError = false;
 			GameErrorMessage = null;
-			var response = _apiCaller.Get(_apiEndpointBuilder.StartArena());
-			ProcessResponse(response);
-		}
-		
-		public void StartTraining(uint turns = 30)
-		{
-			GameHasError = false;
-			GameErrorMessage = null;
-			var response = _apiCaller.Get(_apiEndpointBuilder.StartTraining(turns));
-			ProcessResponse(response);
+			CallApi(apiRequest);
 		}
 
-		private GameResponse Deserialize(string json)
+		public void StartArena()
 		{
-			byte[] byteArray = Encoding.UTF8.GetBytes(json);
-			using (var stream = new MemoryStream(byteArray))
-			{
-				var ser = new DataContractJsonSerializer(typeof (GameResponse));
-				return ser.ReadObject(stream) as GameResponse;
-			}
+			Start(_apiEndpointBuilder.StartArena());
 		}
+
+		public void StartTraining(uint turns = 30)
+		{
+			Start(_apiEndpointBuilder.StartTraining(turns));
+		}
+
 
 		public void MoveHero(Direction direction)
 		{
-			var response = _apiCaller.Get(_apiEndpointBuilder.Play(_playUrl, direction));
-			ProcessResponse(response);
+			CallApi(_apiEndpointBuilder.Play(_playUrl, direction));
 		}
 
-		private void ProcessResponse(IApiResponse result)
+		private void CallApi(IApiRequest apiRequest)
 		{
-			if (result.HasError)
+			IApiResponse response = _apiCaller.Call(apiRequest);
+
+			if (response.HasError)
 			{
 				GameHasError = true;
-				GameErrorMessage = result.ErrorMessage;
+				GameErrorMessage = response.ErrorMessage;
 			}
 			else
 			{
-				var gameResponse = Deserialize(result.Text);
+				var gameResponse = _jsonDeserializer.Deserialize<GameResponse>(response.Text);
 				PreviousHeroes = Heroes;
 				PreviousBoard = Board;
 				_playUrl = gameResponse.PlayUrl;

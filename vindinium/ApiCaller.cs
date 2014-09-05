@@ -11,7 +11,7 @@ namespace Vindinium
 	{
 		#region IApiCaller Members
 
-		public IApiResponse Get(IApiRequest apiRequest)
+		public IApiResponse Call(IApiRequest apiRequest)
 		{
 			try
 			{
