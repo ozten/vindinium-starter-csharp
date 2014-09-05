@@ -5,10 +5,40 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace vindinium
+namespace Vindinium
 {
-    [DataContract]
-    class GameResponse
+	[DataContract]
+	public sealed class Pos
+	{
+		public int X
+		{
+			get { return x; }
+		}
+
+		public int Y
+		{
+			get { return y; }
+		}
+
+		[DataMember]
+		internal int x;
+
+		[DataMember]
+		internal int y;
+	}
+
+	[DataContract]
+	sealed class Board
+	{
+		[DataMember]
+		internal int size;
+
+		[DataMember]
+		internal string tiles;
+	}
+
+	[DataContract]
+    sealed class GameResponse
     {
         [DataMember]
         internal Game game;
@@ -27,7 +57,7 @@ namespace vindinium
     }
 
     [DataContract]
-    class Game
+    sealed class Game
     {
         [DataMember]
         internal string id;
@@ -49,8 +79,53 @@ namespace vindinium
     }
 
     [DataContract]
-    class Hero
+	public sealed class Hero
     {
+		public int Id
+		{
+			get { return id; }
+		}
+
+		public string Name
+		{
+			get { return name; }
+		}
+
+		public int Elo
+		{
+			get { return elo; }
+		}
+
+		public Pos Pos
+		{
+			get { return pos; }
+		}
+
+		public int Life
+		{
+			get { return life; }
+		}
+
+		public int Gold
+		{
+			get { return gold; }
+		}
+
+		public int MineCount
+		{
+			get { return mineCount; }
+		}
+
+		public Pos SpawnPos
+		{
+			get { return spawnPos; }
+		}
+
+		public bool Crashed
+		{
+			get { return crashed; }
+		}
+		
         [DataMember]
         internal int id;
 
@@ -79,23 +154,5 @@ namespace vindinium
         internal bool crashed;
     }
 
-    [DataContract]
-    class Pos
-    {
-        [DataMember]
-        internal int x;
 
-        [DataMember]
-        internal int y;
-    }
-
-    [DataContract]
-    class Board
-    {
-        [DataMember]
-        internal int size;
-
-        [DataMember]
-        internal string tiles;
-    }
 }
