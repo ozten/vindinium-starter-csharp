@@ -1,5 +1,4 @@
 using Vindinium.Common.Entities;
-using Vindinium.Common.Services;
 
 namespace Vindinium
 {
@@ -16,7 +15,7 @@ namespace Vindinium
 
 		public string ErrorMessage { get; private set; }
 		public string Text { get; private set; }
-		public bool HasError { get; set; }
+		public bool HasError { get; private set; }
 
 		public static ApiResponse GetError(string message)
 		{
