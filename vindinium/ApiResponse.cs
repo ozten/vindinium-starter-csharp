@@ -1,4 +1,5 @@
-using Vindinium.Interfaces;
+using Vindinium.Common.Entities;
+using Vindinium.Common.Services;
 
 namespace Vindinium
 {

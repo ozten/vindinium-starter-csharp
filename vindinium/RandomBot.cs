@@ -1,5 +1,5 @@
 ﻿using System;
-using Vindinium.Interfaces;
+using Vindinium.Common;
 
 namespace Vindinium
 {

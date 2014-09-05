@@ -2,7 +2,8 @@ using System;
 using System.IO;
 using System.Net;
 using System.Text;
-using Vindinium.Interfaces;
+using Vindinium.Common.Entities;
+using Vindinium.Common.Services;
 
 namespace Vindinium
 {

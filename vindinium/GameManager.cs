@@ -2,21 +2,23 @@
 using System.IO;
 using System.Runtime.Serialization.Json;
 using System.Text;
-using Vindinium.Contracts;
-using Vindinium.Interfaces;
+using Vindinium.Common;
+using Vindinium.Common.DataStructure;
+using Vindinium.Common.Entities;
+using Vindinium.Common.Services;
 
 namespace Vindinium
 {
 	internal class GameManager
 	{
 		private readonly IApiCaller _apiCaller;
-		private readonly IApiEndpoints _apiEndpoints;
+		private readonly IApiEndpointBuilder _apiEndpointBuilder;
 
 		private string _playUrl;
-		public GameManager(IApiCaller apiCaller, IApiEndpoints apiEndpoints)
+		public GameManager(IApiCaller apiCaller, IApiEndpointBuilder apiEndpointBuilder)
 		{
 			_apiCaller = apiCaller;
-			_apiEndpoints = apiEndpoints;
+			_apiEndpointBuilder = apiEndpointBuilder;
 		}
 
 
@@ -39,7 +41,7 @@ namespace Vindinium
 		{
 			GameHasError = false;
 			GameErrorMessage = null;
-			var response = _apiCaller.Get(_apiEndpoints.StartArena());
+			var response = _apiCaller.Get(_apiEndpointBuilder.StartArena());
 			ProcessResponse(response);
 		}
 		
@@ -47,7 +49,7 @@ namespace Vindinium
 		{
 			GameHasError = false;
 			GameErrorMessage = null;
-			var response = _apiCaller.Get(_apiEndpoints.StartTraining(turns));
+			var response = _apiCaller.Get(_apiEndpointBuilder.StartTraining(turns));
 			ProcessResponse(response);
 		}
 
@@ -63,7 +65,7 @@ namespace Vindinium
 
 		public void MoveHero(Direction direction)
 		{
-			var response = _apiCaller.Get(_apiEndpoints.Play(_playUrl, direction));
+			var response = _apiCaller.Get(_apiEndpointBuilder.Play(_playUrl, direction));
 			ProcessResponse(response);
 		}
 

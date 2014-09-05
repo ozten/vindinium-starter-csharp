@@ -1,6 +1,8 @@
-namespace Vindinium.Interfaces
+using Vindinium.Common.Entities;
+
+namespace Vindinium.Common.Services
 {
-	public interface IApiEndpoints
+	public interface IApiEndpointBuilder
 	{
 		IApiRequest StartArena();
 		IApiRequest StartTraining(uint turns);

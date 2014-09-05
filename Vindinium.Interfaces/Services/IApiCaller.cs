@@ -1,4 +1,6 @@
-namespace Vindinium.Interfaces
+using Vindinium.Common.Entities;
+
+namespace Vindinium.Common.Services
 {
 	public interface IApiCaller
 	{

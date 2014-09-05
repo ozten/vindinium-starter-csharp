@@ -64,12 +64,7 @@
   <ItemGroup>
     <Compile Include="ApiRequest.cs" />
     <Compile Include="Client.cs" />
-    <Compile Include="Contracts\Board.cs" />
-    <Compile Include="Contracts\Game.cs" />
-    <Compile Include="Contracts\GameResponse.cs" />
-    <Compile Include="Contracts\Hero.cs" />
-    <Compile Include="Contracts\Pos.cs" />
-    <Compile Include="ApiEndpoints.cs" />
+    <Compile Include="ApiEndpointBuilder.cs" />
     <Compile Include="ApiCaller.cs" />
     <Compile Include="ApiResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -80,9 +75,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Vindinium.Interfaces\Vindinium.Interfaces.csproj">
+    <ProjectReference Include="..\Vindinium.Interfaces\Vindinium.Common.csproj">
       <Project>{32FE6E9F-2408-4D72-9AF6-60DD4D443825}</Project>
-      <Name>Vindinium.Interfaces</Name>
+      <Name>Vindinium.Common</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

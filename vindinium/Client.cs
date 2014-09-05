@@ -7,10 +7,10 @@ namespace Vindinium
 		private static void Main(string[] args)
 		{
 			Console.Out.WriteLine("Starting...");
-			args = new[] { "xxxx", "training", "30" };
+			args = new[] { "xxxxxx", "training", "30" };
 			var serverUrl = args.Length == 4 ? args[3] : "http://vindinium.org";
 
-			var apiEndpoints = new ApiEndpoints(serverUrl, args[0]);
+			var apiEndpoints = new ApiEndpointBuilder(serverUrl, args[0]);
 			var gameManager = new GameManager(new ApiCaller(), apiEndpoints);
 			var bot = new RandomBot();
 

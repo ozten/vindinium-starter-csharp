@@ -1,19 +1,21 @@
-using Vindinium.Interfaces;
+using Vindinium.Common;
+using Vindinium.Common.Entities;
+using Vindinium.Common.Services;
 
 namespace Vindinium
 {
-	public class ApiEndpoints : IApiEndpoints
+	public class ApiEndpointBuilder : IApiEndpointBuilder
 	{
 		private readonly string _url;
 		private readonly string _key;
 
-		public ApiEndpoints(string url, string key)
+		public ApiEndpointBuilder(string url, string key)
 		{
 			_key = key;
 			_url = url;
 		}
 
-		#region IApiEndpoints Members
+		#region IApiEndpointBuilder Members
 
 
 		public IApiRequest StartArena()

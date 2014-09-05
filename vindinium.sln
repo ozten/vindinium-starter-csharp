@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vindinium", "vindinium\vindinium.csproj", "{ABA6B2FD-DD17-432D-AFB6-E684FAADF87F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vindinium.Interfaces", "Vindinium.Interfaces\Vindinium.Interfaces.csproj", "{32FE6E9F-2408-4D72-9AF6-60DD4D443825}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vindinium.Common", "Vindinium.Interfaces\Vindinium.Common.csproj", "{32FE6E9F-2408-4D72-9AF6-60DD4D443825}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

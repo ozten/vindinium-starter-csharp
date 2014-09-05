@@ -8,8 +8,8 @@
     <ProjectGuid>{32FE6E9F-2408-4D72-9AF6-60DD4D443825}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Vindinium.Interfaces</RootNamespace>
-    <AssemblyName>Vindinium.Interfaces</AssemblyName>
+    <RootNamespace>Vindinium.Common</RootNamespace>
+    <AssemblyName>Vindinium.Common</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -33,14 +33,20 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataStructures\Board.cs" />
+    <Compile Include="DataStructures\Game.cs" />
+    <Compile Include="DataStructures\GameResponse.cs" />
+    <Compile Include="DataStructures\Hero.cs" />
+    <Compile Include="DataStructures\Pos.cs" />
     <Compile Include="Direction.cs" />
-    <Compile Include="IApiRequest.cs" />
-    <Compile Include="IApiEndpoints.cs" />
-    <Compile Include="IApiCaller.cs" />
-    <Compile Include="IApiResponse.cs" />
+    <Compile Include="Entities\IApiRequest.cs" />
+    <Compile Include="Services\IApiCaller.cs" />
+    <Compile Include="Entities\IApiResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\IApiEndpointBuilder.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

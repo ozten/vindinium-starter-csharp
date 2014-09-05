@@ -1,4 +1,4 @@
-namespace Vindinium.Interfaces
+namespace Vindinium.Common.Entities
 {
 	public interface IApiResponse
 	{
