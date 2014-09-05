@@ -4,29 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
 namespace Vindinium
 {
     static class Client
     {
-		public static T GetOrElse<T>(this IEnumerable<T> inp, int index, T def)
-		{
-			return inp.Count() > index ? inp.ElementAt(index) : def;
-		}
-
-		public static T GetOrElse<T>(this IEnumerable<T> inp, T def)
-		{
-			return inp.GetOrElse(0, def);
-		}
-
-		public static IEnumerable<T> GetOption<T>(this IEnumerable<T> inp, int index)
-		{
-			if(inp.Count() > index)
-			{
-				yield return inp.ElementAt(index);
-			}
-		}
-
+       
         /**
          * Launch client.
          * @param args args[0] Private key
@@ -44,7 +26,7 @@ namespace Vindinium
             RandomBot bot = new RandomBot();
 
             //now kick it all off by running the bot.
-			serverStuff.Submit(bot);
+            serverStuff.Submit(bot);
 
             Console.Out.WriteLine("done");
 

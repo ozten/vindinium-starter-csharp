@@ -2,16 +2,14 @@ using System;
 
 namespace Vindinium
 {
-	public interface IBot
-	{
-		Direction Move(GameState gameState);
+    public interface IBot
+    {
+        Direction Move(GameState gameState);
 
-		String Name {
-			get;
-		}
-
-
-
-	}
+        String Name
+        {
+            get;
+        }
+    }
 }
 
