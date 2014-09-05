@@ -8,11 +8,15 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using log4net;
 
 namespace Vindinium
 {
+
     public sealed class ServerStuff
     {
+        private static readonly ILog _logger = LogManager.GetLogger(typeof(ServerStuff));
+
         private string _key;
         private bool _trainingMode;
         private uint _turns;
@@ -70,8 +74,8 @@ namespace Vindinium
                 }
                 catch (WebException exception)
                 {
-                    Console.WriteLine(uri);
-                    Console.WriteLine(exception.StackTrace);
+                    _logger.Error("Failed to contact ["+uri+"]");
+                    _logger.Error("WebException ["+exception+"]");
                     this.GameState.errored = true;
                     if (exception.Response != null)
                     {
@@ -94,13 +98,13 @@ namespace Vindinium
         {
             if (bot != null)
             {
-                Console.Out.WriteLine("Running [" + bot.Name + "]");
+                _logger.Info("Running [" + bot.Name + "]");
 
                 this.CreateGame();
 
                 while (this.GameState.errored)
                 {
-                    Console.WriteLine(this.GameState.errorText);
+                    _logger.Error(this.GameState.errorText);
                     Thread.Sleep(1000);
                     this.CreateGame();
                 }
@@ -115,35 +119,43 @@ namespace Vindinium
                 while (!(this.GameState.finished))
                 {
                     this.MoveHero(bot.Move(this.GameState).ToString());
-                    Console.Out.WriteLine("completed turn " + this.GameState.currentTurn.ToString());
+                    _logger.Info("completed turn [" + this.GameState.currentTurn.ToString() + "]");
                     if (this.GameState.errored)
                     {
-                        Console.WriteLine(this.GameState.errorText);
+                        _logger.Error(this.GameState.errorText);
                         Thread.Sleep(1000);
                     }
                 }
 
 
-                Console.Out.WriteLine(bot.Name + " finished");
+                _logger.Info("[" + bot.Name + "] finished");
             }
+        }
+
+        private Hero Dictionary2Hero(IDictonary<string, object> inp) = {
+            var outp = new Hero();
+            outp.
         }
 
         private void Deserialize(string json)
         {
-            GameResponse gameResponse = JsonConvert.DeserializeObject<GameResponse>(json);
+            var gameResponse = JsonConvert.DeserializeObject<IDictionary<string, object>>(json);
 
 
-            _playURL = new Uri(gameResponse.playUrl);
-            this.GameState.viewURL = new Uri(gameResponse.viewUrl);
+            _playURL = new Uri((string)gameResponse["playUrl"]);
+            this.GameState.viewURL = new Uri((string)gameResponse["viewUrl"]);
 
-            GameState.myHero = gameResponse.hero;
-            GameState.heroes = gameResponse.game.heroes;
+            GameState.myHero = gameResponse["hero"];
 
-            GameState.currentTurn = gameResponse.game.turn;
-            GameState.maxTurns = gameResponse.game.maxTurns;
-            GameState.finished = gameResponse.game.finished;
+            var game = (IDictionary<string, object>) gameResponse["game"];
 
-            GameState.CreateBoard(gameResponse.game.board.size, gameResponse.game.board.tiles);
+            GameState.heroes = game["heroes"];
+
+            GameState.currentTurn = (int)game["turn"];
+            GameState.maxTurns = (int)game["maxTurns"];
+            GameState.finished = (bool)game["finished"];
+            var board = (IDictionary<string, object>)game["board"];
+            GameState.CreateBoard((int)board["size"], (string)board["tiles"]);
         }
 
         private void MoveHero(string direction)
