@@ -26,11 +26,20 @@ namespace Vindinium
 				using (WebResponse response = request.GetResponse())
 				{
 					TimeSpan diff = DateTime.Now.Subtract(now);
-					if (diff.TotalMilliseconds > 500)
+					if(diff.TotalMilliseconds > 800)
 					{
-						Console.WriteLine("Web request took {0} milliseconds", diff.TotalMilliseconds);
+						Console.ForegroundColor = ConsoleColor.Red;
 					}
-
+					else if (diff.TotalMilliseconds > 500)
+					{
+						Console.ForegroundColor = ConsoleColor.Yellow;
+					}
+					else
+					{
+						Console.ForegroundColor = ConsoleColor.Green;
+					}
+					Console.WriteLine("Web request took {0} milliseconds", diff.TotalMilliseconds);
+					Console.ResetColor();
 					using (Stream stream = response.GetResponseStream())
 					{
 						if (stream == null) return new WebIoResponse(null);
