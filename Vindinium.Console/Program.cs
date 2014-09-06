@@ -7,6 +7,8 @@ namespace Vindinium.Console
 {
 	internal class Program
 	{
+		private static readonly Logger _logger = new Logger();
+
 		private static void Main(string[] args)
 		{
 			try
@@ -16,16 +18,11 @@ namespace Vindinium.Console
 				System.Console.Out.WriteLine();
 				System.Console.Out.WriteLine("Press [Enter] key when ready");
 				System.Console.ReadLine();
-
-				System.Console.Out.WriteLine("Starting...");
-
 				AcceptChallenge(parameters);
 			}
 			catch (Exception ex)
 			{
-				System.Console.ForegroundColor = ConsoleColor.Red;
-				System.Console.Out.WriteLine(ex.Message);
-				System.Console.ResetColor();
+				_logger.Fatal("Uncaught exception", ex);
 			}
 			finally
 			{
@@ -36,19 +33,21 @@ namespace Vindinium.Console
 
 		private static void AcceptChallenge(Parameters parameters)
 		{
+			_logger.Debug("Challenge Accepted");
+
 			var apiEndpoints = new ApiEndpointBuilder(parameters.ApiUri, parameters.ApiKey);
-			var gameManager = new GameManager(new ApiCaller(), apiEndpoints, new JsonDeserializer());
+			var gameManager = new GameManager(new ApiCaller(_logger), apiEndpoints, new JsonDeserializer());
 			var bot = new RandomBot();
 
 			StartGameEnvironment(gameManager, parameters);
 
-			System.Console.Out.WriteLine("Watch the game: {0}", gameManager.ViewUrl);
+			_logger.Debug("View URL: {0}", gameManager.ViewUrl);
 
 			PlayGame(bot, gameManager);
 
 			if (gameManager.GameHasError)
 			{
-				System.Console.Out.WriteLine("Error: {0}", gameManager.GameErrorMessage);
+				_logger.Error(gameManager.GameErrorMessage);
 			}
 		}
 
@@ -75,7 +74,7 @@ namespace Vindinium.Console
 
 		private static Parameters GetParameters(string[] args)
 		{
-			string[] lines = args ?? File.ReadAllLines(@"\vindinium.txt");
+			string[] lines = args.Length == 0 ? File.ReadAllLines(@"\vindinium.txt") : args;
 
 			var parameters = new Parameters
 			                 	{
@@ -85,20 +84,12 @@ namespace Vindinium.Console
 			                 		ApiUri = new Uri(lines[3], UriKind.Absolute)
 			                 	};
 
-			DisplayParameter("API Uri", parameters.ApiUri);
-			DisplayParameter("API Key", parameters.ApiKey);
-			DisplayParameter("Environment", parameters.Environment);
-			DisplayParameter("Turns", parameters.Turns);
+			_logger.Debug("API Uri: {0}", parameters.ApiUri);
+			_logger.Debug("API Key: {0}", parameters.ApiKey);
+			_logger.Debug("Environment: {0}", parameters.Environment);
+			_logger.Debug("Turns: {0}", parameters.Turns);
 
 			return parameters;
-		}
-
-		private static void DisplayParameter(string name, object value)
-		{
-			System.Console.ForegroundColor = ConsoleColor.Green;
-			System.Console.Out.Write("{0,18}: ", name);
-			System.Console.ResetColor();
-			System.Console.Out.WriteLine(value);
 		}
 	}
 }

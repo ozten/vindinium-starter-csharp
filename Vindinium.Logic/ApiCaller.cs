@@ -9,6 +9,13 @@ namespace Vindinium.Logic
 {
 	public class ApiCaller : IApiCaller
 	{
+		private readonly ILogger _logger;
+
+		public ApiCaller(ILogger logger)
+		{
+			_logger = logger;
+		}
+
 		#region IApiCaller Members
 
 		public IApiResponse Call(IApiRequest apiRequest)
@@ -45,23 +52,10 @@ namespace Vindinium.Logic
 			}
 		}
 
-		private static void LogResponseTime(DateTime startedTime)
+		private void LogResponseTime(DateTime startedTime)
 		{
 			TimeSpan diff = DateTime.Now.Subtract(startedTime);
-			if (diff.TotalMilliseconds > 800)
-			{
-				Console.ForegroundColor = ConsoleColor.Red;
-			}
-			else if (diff.TotalMilliseconds > 500)
-			{
-				Console.ForegroundColor = ConsoleColor.Yellow;
-			}
-			else
-			{
-				Console.ForegroundColor = ConsoleColor.Green;
-			}
-			Console.WriteLine("Web request took {0,5} milliseconds", diff.TotalMilliseconds);
-			Console.ResetColor();
+			_logger.Trace("Web request took {0,5} miliseconds", diff.TotalMilliseconds);
 		}
 
 		private static HttpWebRequest CreateApiClient(IApiRequest apiRequest)
