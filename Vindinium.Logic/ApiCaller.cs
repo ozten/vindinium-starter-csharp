@@ -5,7 +5,7 @@ using System.Text;
 using Vindinium.Common.Entities;
 using Vindinium.Common.Services;
 
-namespace Vindinium
+namespace Vindinium.Logic
 {
 	public class ApiCaller : IApiCaller
 	{
@@ -66,7 +66,7 @@ namespace Vindinium
 
 		private static HttpWebRequest CreateApiClient(IApiRequest apiRequest)
 		{
-			var request = (HttpWebRequest) WebRequest.Create(apiRequest.Url);
+			var request = (HttpWebRequest) WebRequest.Create(apiRequest.Uri);
 			request.KeepAlive = false;
 			request.Method = "Post";
 			request.ContentType = "application/x-www-form-urlencoded";

@@ -1,6 +1,6 @@
 using Vindinium.Common.Entities;
 
-namespace Vindinium
+namespace Vindinium.Logic
 {
 	public class ApiResponse : IApiResponse
 	{

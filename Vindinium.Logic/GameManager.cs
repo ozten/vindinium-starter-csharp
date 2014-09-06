@@ -1,18 +1,19 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Vindinium.Common;
 using Vindinium.Common.DataStructure;
 using Vindinium.Common.Entities;
 using Vindinium.Common.Services;
 
-namespace Vindinium
+namespace Vindinium.Logic
 {
-	internal class GameManager
+	public class GameManager
 	{
 		private readonly IApiCaller _apiCaller;
 		private readonly IApiEndpointBuilder _apiEndpointBuilder;
 		private readonly IJsonDeserializer _jsonDeserializer;
 
-		private string _playUrl;
+		private Uri _playUrl;
 
 		public GameManager(IApiCaller apiCaller, IApiEndpointBuilder apiEndpointBuilder, IJsonDeserializer jsonDeserializer)
 		{
@@ -73,7 +74,7 @@ namespace Vindinium
 				var gameResponse = _jsonDeserializer.Deserialize<GameResponse>(response.Text);
 				PreviousHeroes = Heroes;
 				PreviousBoard = Board;
-				_playUrl = gameResponse.PlayUrl;
+				_playUrl = new Uri(gameResponse.PlayUrl, UriKind.Absolute);
 				ViewUrl = gameResponse.ViewUrl;
 				MyHero = gameResponse.Hero;
 

@@ -1,8 +1,10 @@
+using System;
+
 namespace Vindinium.Common.Entities
 {
 	public interface IApiRequest
 	{
-		string Url { get; }
+		Uri Uri { get; }
 		string Parameters { get; }
 	}
 }

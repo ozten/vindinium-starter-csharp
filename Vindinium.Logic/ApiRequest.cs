@@ -1,10 +1,11 @@
+using System;
 using Vindinium.Common.Entities;
 
-namespace Vindinium
+namespace Vindinium.Logic
 {
 	class ApiRequest : IApiRequest
 	{
-		public string Url { get; set; }
+		public Uri Uri { get; set; }
 		public string Parameters { get; set; }
 	}
 }

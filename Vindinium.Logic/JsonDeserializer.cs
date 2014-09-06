@@ -3,9 +3,9 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using Vindinium.Common.Services;
 
-namespace Vindinium
+namespace Vindinium.Logic
 {
-	class JsonDeserializer : IJsonDeserializer
+	public class JsonDeserializer : IJsonDeserializer
 	{
 		public T Deserialize<T>(string json) where T : class
 		{

@@ -1,3 +1,4 @@
+using System;
 using Vindinium.Common.Entities;
 
 namespace Vindinium.Common.Services
@@ -6,6 +7,6 @@ namespace Vindinium.Common.Services
 	{
 		IApiRequest StartArena();
 		IApiRequest StartTraining(uint turns);
-		IApiRequest Play(string playUrl, Direction direction);
+		IApiRequest Play(Uri playUrl, Direction direction);
 	}
 }
