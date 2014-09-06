@@ -3,9 +3,13 @@ using Vindinium.Common.Entities;
 
 namespace Vindinium.Logic
 {
-	class ApiRequest : IApiRequest
+	internal class ApiRequest : IApiRequest
 	{
+		#region IApiRequest Members
+
 		public Uri Uri { get; set; }
 		public string Parameters { get; set; }
+
+		#endregion
 	}
 }

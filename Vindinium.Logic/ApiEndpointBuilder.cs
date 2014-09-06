@@ -20,7 +20,6 @@ namespace Vindinium.Logic
 
 		#region IApiEndpointBuilder Members
 
-
 		public IApiRequest StartArena()
 		{
 			return new ApiRequest

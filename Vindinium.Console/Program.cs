@@ -11,7 +11,7 @@ namespace Vindinium.Console
 		{
 			try
 			{
-				Parameters parameters = GetParameters();
+				Parameters parameters = GetParameters(args);
 
 				System.Console.Out.WriteLine();
 				System.Console.Out.WriteLine("Press [Enter] key when ready");
@@ -73,9 +73,10 @@ namespace Vindinium.Console
 			}
 		}
 
-		private static Parameters GetParameters()
+		private static Parameters GetParameters(string[] args)
 		{
-			string[] lines = File.ReadAllLines(@"\vindinium.txt");
+			string[] lines = args ?? File.ReadAllLines(@"\vindinium.txt");
+
 			var parameters = new Parameters
 			                 	{
 			                 		ApiKey = lines[0],

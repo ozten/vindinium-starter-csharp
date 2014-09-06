@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Vindinium.Common;
-using Vindinium.Common.DataStructure;
+using Vindinium.Common.DataStructures;
 using Vindinium.Common.Entities;
 using Vindinium.Common.Services;
 

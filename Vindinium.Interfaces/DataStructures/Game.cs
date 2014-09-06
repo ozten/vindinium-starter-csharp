@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace Vindinium.Common.DataStructure
+namespace Vindinium.Common.DataStructures
 {
 	[DataContract]
 	public class Game

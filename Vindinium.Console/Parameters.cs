@@ -2,10 +2,10 @@ using System;
 
 namespace Vindinium.Console
 {
-	struct Parameters
+	internal struct Parameters
 	{
-		public Uri ApiUri;
 		public string ApiKey;
+		public Uri ApiUri;
 		public string Environment;
 		public uint Turns;
 	}
