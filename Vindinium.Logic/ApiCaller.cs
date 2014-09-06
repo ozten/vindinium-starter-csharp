@@ -23,6 +23,7 @@ namespace Vindinium.Logic
 			try
 			{
 				HttpWebRequest request = CreateApiClient(apiRequest);
+				
 				DateTime started = DateTime.Now;
 				using (WebResponse response = request.GetResponse())
 				{
@@ -38,8 +39,9 @@ namespace Vindinium.Logic
 
 		#endregion
 
-		private static IApiResponse ResponseAsApiResponse(WebResponse response)
+		private IApiResponse ResponseAsApiResponse(WebResponse response)
 		{
+			_logger.Trace("ResponseAsApiResponse");
 			using (Stream stream = response.GetResponseStream())
 			{
 				if (stream == null) return new ApiResponse(null);
@@ -47,6 +49,8 @@ namespace Vindinium.Logic
 				using (var reader = new StreamReader(stream))
 				{
 					string serverResponseText = reader.ReadToEnd();
+					
+					_logger.Trace(serverResponseText);
 					return new ApiResponse(serverResponseText);
 				}
 			}
@@ -55,12 +59,13 @@ namespace Vindinium.Logic
 		private void LogResponseTime(DateTime startedTime)
 		{
 			TimeSpan diff = DateTime.Now.Subtract(startedTime);
-			_logger.Trace("Web request took {0,5} miliseconds", diff.TotalMilliseconds);
+			_logger.Trace("LogResponseTime: {0,5} miliseconds", diff.TotalMilliseconds);
 		}
 
-		private static HttpWebRequest CreateApiClient(IApiRequest apiRequest)
+		private HttpWebRequest CreateApiClient(IApiRequest apiRequest)
 		{
-			var request = (HttpWebRequest) WebRequest.Create(apiRequest.Uri);
+			_logger.Trace("CreateApiClient {0} {1}", apiRequest.Uri, apiRequest.Parameters);
+			var request = (HttpWebRequest)WebRequest.Create(apiRequest.Uri);
 			request.KeepAlive = false;
 			request.Method = "Post";
 			request.ContentType = "application/x-www-form-urlencoded";
@@ -75,8 +80,9 @@ namespace Vindinium.Logic
 			return request;
 		}
 
-		private static IApiResponse ExceptionAsApiResponse(WebException exception)
+		private IApiResponse ExceptionAsApiResponse(WebException exception)
 		{
+			_logger.Trace("ExceptionAsApiResponse - Status: {0}", exception.Status);
 			using (Stream responseStream = exception.Response.GetResponseStream())
 			{
 				if (responseStream != null)
