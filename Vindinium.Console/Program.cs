@@ -1,52 +1,103 @@
 ﻿using System;
 using System.IO;
+using Vindinium.Common;
 using Vindinium.Logic;
 
 namespace Vindinium.Console
 {
-	class Program
+	internal class Program
 	{
-		static void Main(string[] args)
+		private static void Main(string[] args)
 		{
-			var lines = File.ReadAllLines(@"\vindinium.txt");
-			var apiKey = lines[0];
-			var environment = lines[1];
-			var turns = uint.Parse(lines[3]);
-			var apiUrl = new Uri(lines[4], UriKind.Absolute);
+			try
+			{
+				Parameters parameters = GetParameters();
 
-			System.Console.Out.WriteLine("API Url: {0}", apiUrl);
-			System.Console.Out.WriteLine("API Key: {0}", apiKey);
-			System.Console.Out.WriteLine("Environment: {0}", environment);
-			System.Console.Out.WriteLine("Turns: {0}", turns);
-			System.Console.Out.WriteLine("Starting...");
+				System.Console.Out.WriteLine();
+				System.Console.Out.WriteLine("Press [Enter] key when ready");
+				System.Console.ReadLine();
 
-			var apiEndpoints = new ApiEndpointBuilder(apiUrl, apiKey);
+				System.Console.Out.WriteLine("Starting...");
+
+				AcceptChallenge(parameters);
+			}
+			catch (Exception ex)
+			{
+				System.Console.ForegroundColor = ConsoleColor.Red;
+				System.Console.Out.WriteLine(ex.Message);
+				System.Console.ResetColor();
+			}
+			finally
+			{
+				System.Console.Out.WriteLine("done");
+				System.Console.ReadLine();
+			}
+		}
+
+		private static void AcceptChallenge(Parameters parameters)
+		{
+			var apiEndpoints = new ApiEndpointBuilder(parameters.ApiUri, parameters.ApiKey);
 			var gameManager = new GameManager(new ApiCaller(), apiEndpoints, new JsonDeserializer());
 			var bot = new RandomBot();
 
-			if (environment == "arena")
+			StartGameEnvironment(gameManager, parameters);
+
+			System.Console.Out.WriteLine("Watch the game: {0}", gameManager.ViewUrl);
+
+			PlayGame(bot, gameManager);
+
+			if (gameManager.GameHasError)
+			{
+				System.Console.Out.WriteLine("Error: {0}", gameManager.GameErrorMessage);
+			}
+		}
+
+		private static void PlayGame(RandomBot bot, GameManager gameManager)
+		{
+			while (gameManager.Finished == false && gameManager.GameHasError == false)
+			{
+				Direction nextMove = bot.DetermineNextMove();
+				gameManager.MoveHero(nextMove);
+			}
+		}
+
+		private static void StartGameEnvironment(GameManager gameManager, Parameters parameters)
+		{
+			if (parameters.Environment == "arena")
 			{
 				gameManager.StartArena();
 			}
 			else
 			{
-				gameManager.StartTraining(turns);
+				gameManager.StartTraining(parameters.Turns);
 			}
+		}
 
-			System.Console.Out.WriteLine("Watch the game: {0}", gameManager.ViewUrl);
+		private static Parameters GetParameters()
+		{
+			string[] lines = File.ReadAllLines(@"\vindinium.txt");
+			var parameters = new Parameters
+			                 	{
+			                 		ApiKey = lines[0],
+			                 		Environment = lines[1],
+			                 		Turns = uint.Parse(lines[2]),
+			                 		ApiUri = new Uri(lines[3], UriKind.Absolute)
+			                 	};
 
+			DisplayParameter("API Uri", parameters.ApiUri);
+			DisplayParameter("API Key", parameters.ApiKey);
+			DisplayParameter("Environment", parameters.Environment);
+			DisplayParameter("Turns", parameters.Turns);
 
-			while (gameManager.Finished == false && gameManager.GameHasError == false)
-			{
-				var nextMove = bot.DetermineNextMove();
-				gameManager.MoveHero(nextMove);
-			}
-			if (gameManager.GameHasError)
-			{
-				System.Console.Out.WriteLine("Error: {0}", gameManager.GameErrorMessage);
-			}
-			System.Console.Out.WriteLine("done");
-			System.Console.Read();
+			return parameters;
+		}
+
+		private static void DisplayParameter(string name, object value)
+		{
+			System.Console.ForegroundColor = ConsoleColor.Green;
+			System.Console.Out.Write("{0,18}: ", name);
+			System.Console.ResetColor();
+			System.Console.Out.WriteLine(value);
 		}
 	}
 }
