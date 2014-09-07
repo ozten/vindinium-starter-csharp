@@ -4,11 +4,11 @@ env:
   - EnableNuGetPackageRestore=true
  
 install:
-  - mozroots --import --sync
   - wget http://nuget.org/nuget.exe
   - chmod +x nuget.exe
   - sudo apt-get update
   - sudo apt-get install mono-devel mono-gmcs nunit-console monodoc-base
+  - mozroots --import --sync
 
 script:
   - ./buildEverything.sh
