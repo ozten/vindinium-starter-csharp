@@ -1,9 +1,9 @@
-# Vindinium Starter for C#
+# Vindinium Starter for C Sharp
 
 Code by Mark Tanner
-(put on github by me, ping me for his contact info)
+(put on github by ozten, ping them for his contact info)
 
-## Run with
+## Run the example with
 
     client <key> <[training|arena]> <number-of-turns> [server-url]
 
