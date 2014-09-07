@@ -5,15 +5,17 @@ using Vindinium.Common.DataStructures;
 using Vindinium.Common.Entities;
 using Vindinium.Common.Services;
 
-namespace Vindinium.Logic
+namespace Vindinium.Client.Logic
 {
 	public class GameManager
 	{
 		private readonly IApiCaller _apiCaller;
 		private readonly IApiEndpointBuilder _apiEndpointBuilder;
 		private readonly IJsonDeserializer _jsonDeserializer;
+		public EventHandler<GameEventArgs> GotResponse;
 
 		private Uri _playUrl;
+		private bool isArena;
 
 		public GameManager(IApiCaller apiCaller, IApiEndpointBuilder apiEndpointBuilder, IJsonDeserializer jsonDeserializer)
 		{
@@ -46,11 +48,13 @@ namespace Vindinium.Logic
 
 		public void StartArena()
 		{
+			isArena = true;
 			Start(_apiEndpointBuilder.StartArena());
 		}
 
 		public void StartTraining(uint turns = 30)
 		{
+			isArena = false;
 			Start(_apiEndpointBuilder.StartTraining(turns));
 		}
 
@@ -72,6 +76,14 @@ namespace Vindinium.Logic
 			else
 			{
 				var gameResponse = _jsonDeserializer.Deserialize<GameResponse>(response.Text);
+				var args = new GameEventArgs
+				           	{
+				           		Json = response.Text,
+				           		Game = gameResponse.Game,
+				           		IsArena = isArena
+				           	};
+				if (GotResponse != null) GotResponse(this, args);
+
 				PreviousHeroes = Heroes;
 				PreviousBoard = Board;
 				_playUrl = new Uri(gameResponse.PlayUrl, UriKind.Absolute);

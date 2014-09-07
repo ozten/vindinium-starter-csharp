@@ -3,7 +3,7 @@ using NLog;
 using Vindinium.Common.Services;
 using LogLevel = Vindinium.Common.LogLevel;
 
-namespace Vindinium.Logic
+namespace Vindinium.Client.Logic
 {
 	public class Logger : ILogger
 	{

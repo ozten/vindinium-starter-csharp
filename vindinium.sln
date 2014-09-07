@@ -1,11 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vindinium.Common", "Vindinium.Interfaces\Vindinium.Common.csproj", "{32FE6E9F-2408-4D72-9AF6-60DD4D443825}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Client", "Client", "{1DE3F56F-8581-4B8D-925B-0A6B62A00CAE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vindinium.Console", "Vindinium.Console\Vindinium.Console.csproj", "{0AB2A300-42EC-4EE4-8B92-59718EFA4CFD}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{4E57BED8-D78E-4C3B-BEE6-6EC9D27FCE8B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vindinium.Logic", "Vindinium.Logic\Vindinium.Logic.csproj", "{ABA6B2FD-DD17-432D-AFB6-E684FAADF87F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vindinium.Client.Console", "Vindinium.Client.Console\Vindinium.Client.Console.csproj", "{0AB2A300-42EC-4EE4-8B92-59718EFA4CFD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vindinium.Client.Logic", "Vindinium.Client.Logic\Vindinium.Client.Logic.csproj", "{ABA6B2FD-DD17-432D-AFB6-E684FAADF87F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vindinium.Game.Logic", "Vindinium.Server.Logic\Vindinium.Game.Logic.csproj", "{CE551221-F16B-4121-80D3-3155B4458676}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vindinium.Common", "Vindinium.Common\Vindinium.Common.csproj", "{32FE6E9F-2408-4D72-9AF6-60DD4D443825}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,16 +23,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{32FE6E9F-2408-4D72-9AF6-60DD4D443825}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{32FE6E9F-2408-4D72-9AF6-60DD4D443825}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{32FE6E9F-2408-4D72-9AF6-60DD4D443825}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{32FE6E9F-2408-4D72-9AF6-60DD4D443825}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{32FE6E9F-2408-4D72-9AF6-60DD4D443825}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{32FE6E9F-2408-4D72-9AF6-60DD4D443825}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{32FE6E9F-2408-4D72-9AF6-60DD4D443825}.Release|Any CPU.Build.0 = Release|Any CPU
-		{32FE6E9F-2408-4D72-9AF6-60DD4D443825}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{32FE6E9F-2408-4D72-9AF6-60DD4D443825}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{32FE6E9F-2408-4D72-9AF6-60DD4D443825}.Release|x86.ActiveCfg = Release|Any CPU
 		{0AB2A300-42EC-4EE4-8B92-59718EFA4CFD}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{0AB2A300-42EC-4EE4-8B92-59718EFA4CFD}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
 		{0AB2A300-42EC-4EE4-8B92-59718EFA4CFD}.Debug|Mixed Platforms.Build.0 = Debug|x86
@@ -49,8 +45,33 @@ Global
 		{ABA6B2FD-DD17-432D-AFB6-E684FAADF87F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{ABA6B2FD-DD17-432D-AFB6-E684FAADF87F}.Release|x86.ActiveCfg = Release|x86
 		{ABA6B2FD-DD17-432D-AFB6-E684FAADF87F}.Release|x86.Build.0 = Release|x86
+		{CE551221-F16B-4121-80D3-3155B4458676}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE551221-F16B-4121-80D3-3155B4458676}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE551221-F16B-4121-80D3-3155B4458676}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{CE551221-F16B-4121-80D3-3155B4458676}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{CE551221-F16B-4121-80D3-3155B4458676}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CE551221-F16B-4121-80D3-3155B4458676}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE551221-F16B-4121-80D3-3155B4458676}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE551221-F16B-4121-80D3-3155B4458676}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{CE551221-F16B-4121-80D3-3155B4458676}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{CE551221-F16B-4121-80D3-3155B4458676}.Release|x86.ActiveCfg = Release|Any CPU
+		{32FE6E9F-2408-4D72-9AF6-60DD4D443825}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32FE6E9F-2408-4D72-9AF6-60DD4D443825}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32FE6E9F-2408-4D72-9AF6-60DD4D443825}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{32FE6E9F-2408-4D72-9AF6-60DD4D443825}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{32FE6E9F-2408-4D72-9AF6-60DD4D443825}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{32FE6E9F-2408-4D72-9AF6-60DD4D443825}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32FE6E9F-2408-4D72-9AF6-60DD4D443825}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32FE6E9F-2408-4D72-9AF6-60DD4D443825}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{32FE6E9F-2408-4D72-9AF6-60DD4D443825}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{32FE6E9F-2408-4D72-9AF6-60DD4D443825}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0AB2A300-42EC-4EE4-8B92-59718EFA4CFD} = {1DE3F56F-8581-4B8D-925B-0A6B62A00CAE}
+		{ABA6B2FD-DD17-432D-AFB6-E684FAADF87F} = {1DE3F56F-8581-4B8D-925B-0A6B62A00CAE}
+		{CE551221-F16B-4121-80D3-3155B4458676} = {4E57BED8-D78E-4C3B-BEE6-6EC9D27FCE8B}
 	EndGlobalSection
 EndGlobal

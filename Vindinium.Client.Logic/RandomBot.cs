@@ -1,7 +1,7 @@
 ﻿using System;
 using Vindinium.Common;
 
-namespace Vindinium.Logic
+namespace Vindinium.Client.Logic
 {
 	public class RandomBot
 	{

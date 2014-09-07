@@ -5,7 +5,7 @@ using System.Text;
 using Vindinium.Common.Entities;
 using Vindinium.Common.Services;
 
-namespace Vindinium.Logic
+namespace Vindinium.Client.Logic
 {
 	public class ApiCaller : IApiCaller
 	{
@@ -23,7 +23,7 @@ namespace Vindinium.Logic
 			try
 			{
 				HttpWebRequest request = CreateApiClient(apiRequest);
-				
+
 				DateTime started = DateTime.Now;
 				using (WebResponse response = request.GetResponse())
 				{
@@ -49,7 +49,7 @@ namespace Vindinium.Logic
 				using (var reader = new StreamReader(stream))
 				{
 					string serverResponseText = reader.ReadToEnd();
-					
+
 					_logger.Trace(serverResponseText);
 					return new ApiResponse(serverResponseText);
 				}
@@ -65,7 +65,7 @@ namespace Vindinium.Logic
 		private HttpWebRequest CreateApiClient(IApiRequest apiRequest)
 		{
 			_logger.Trace("CreateApiClient {0} {1}", apiRequest.Uri, apiRequest.Parameters);
-			var request = (HttpWebRequest)WebRequest.Create(apiRequest.Uri);
+			var request = (HttpWebRequest) WebRequest.Create(apiRequest.Uri);
 			request.KeepAlive = false;
 			request.Method = "Post";
 			request.ContentType = "application/x-www-form-urlencoded";

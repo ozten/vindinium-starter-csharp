@@ -3,7 +3,7 @@ using Vindinium.Common;
 using Vindinium.Common.Entities;
 using Vindinium.Common.Services;
 
-namespace Vindinium.Logic
+namespace Vindinium.Client.Logic
 {
 	public class ApiEndpointBuilder : IApiEndpointBuilder
 	{

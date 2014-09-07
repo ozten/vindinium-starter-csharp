@@ -8,8 +8,8 @@
     <ProjectGuid>{ABA6B2FD-DD17-432D-AFB6-E684FAADF87F}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Vindinium.Logic</RootNamespace>
-    <AssemblyName>Vindinium.Logic</AssemblyName>
+    <RootNamespace>Vindinium.Client.Logic</RootNamespace>
+    <AssemblyName>Vindinium.Client.Logic</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -70,6 +70,7 @@
     <Compile Include="ApiEndpointBuilder.cs" />
     <Compile Include="ApiCaller.cs" />
     <Compile Include="ApiResponse.cs" />
+    <Compile Include="GameEventArgs.cs" />
     <Compile Include="JsonDeserializer.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -77,7 +78,7 @@
     <Compile Include="GameManager.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Vindinium.Interfaces\Vindinium.Common.csproj">
+    <ProjectReference Include="..\Vindinium.Common\Vindinium.Common.csproj">
       <Project>{32FE6E9F-2408-4D72-9AF6-60DD4D443825}</Project>
       <Name>Vindinium.Common</Name>
     </ProjectReference>

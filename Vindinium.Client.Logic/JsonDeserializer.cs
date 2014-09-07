@@ -3,7 +3,7 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using Vindinium.Common.Services;
 
-namespace Vindinium.Logic
+namespace Vindinium.Client.Logic
 {
 	public class JsonDeserializer : IJsonDeserializer
 	{

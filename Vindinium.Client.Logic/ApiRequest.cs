@@ -1,7 +1,7 @@
 using System;
 using Vindinium.Common.Entities;
 
-namespace Vindinium.Logic
+namespace Vindinium.Client.Logic
 {
 	internal class ApiRequest : IApiRequest
 	{
