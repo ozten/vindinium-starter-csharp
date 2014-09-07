@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using log4net;
 
 namespace Vindinium
@@ -21,10 +22,8 @@ namespace Vindinium
         private bool _trainingMode;
         private uint _turns;
         private string _map;
-        private Uri _playURL;
         private Uri _serverURL;
 
-        public GameState  GameState{ get; private set; }
         //if training mode is false, turns and map are ignored8
         public ServerStuff(string key, bool trainingMode, int turns, Uri serverURL, string map)
         {
@@ -40,10 +39,8 @@ namespace Vindinium
             }
         }
         //initializes a new game, its syncronised
-        private void CreateGame()
+        private GameState CreateGame()
         {
-            this.GameState = new GameState();
-            this.GameState.errored = false;
 
             string uri;
             
@@ -69,28 +66,17 @@ namespace Vindinium
                 try
                 {
                     string result = client.UploadString(uri, myParameters);
-                    Deserialize(result);
+                    return new GameState(result);
 
                 }
                 catch (WebException exception)
                 {
                     _logger.Error("Failed to contact ["+uri+"]");
-                    _logger.Error("WebException ["+exception+"]");
-                    this.GameState.errored = true;
-                    if (exception.Response != null)
-                    {
-                        using (var reader = new StreamReader(exception.Response.GetResponseStream()))
-                        {
-                            this.GameState.errorText = reader.ReadToEnd();
-                        }
-                    }
-                    else
-                    {
-                        this.GameState.errored = true;
-                        this.GameState.errorText = "The server is down";
-                    }
+                    _logger.Error("WebException ["+exception+"]", exception);
 
+                    return new GameState(exception);
                 }
+
             }
         }
         //starts everything
@@ -100,29 +86,30 @@ namespace Vindinium
             {
                 _logger.Info("Running [" + bot.Name + "]");
 
-                this.CreateGame();
+                // TODO destructive assignation to method-local variable gameState
+                var gameState = this.CreateGame();
 
-                while (this.GameState.errored)
+                while (gameState.Errored)
                 {
-                    _logger.Error(this.GameState.errorText);
+                    _logger.Error(gameState.ErrorText);
                     Thread.Sleep(1000);
-                    this.CreateGame();
+                    gameState = this.CreateGame();
                 }
 
                 //opens up a webpage so you can view the game, doing it async so we dont time out
                 new Thread(() => {
-                    using (System.Diagnostics.Process.Start(this.GameState.viewURL.ToString()))
+                    using (System.Diagnostics.Process.Start(gameState.ViewURL.ToString()))
                     {
                     }
                 }).Start();
 			
-                while (!(this.GameState.finished))
+                while (!(gameState.Finished))
                 {
-                    this.MoveHero(bot.Move(this.GameState).ToString());
-                    _logger.Info("completed turn [" + this.GameState.currentTurn.ToString() + "]");
-                    if (this.GameState.errored)
+                    gameState = this.MoveHero(bot.Move(gameState).ToString(), gameState.PlayURL);
+                    _logger.Info("completed turn [" + gameState.CurrentTurn.ToString() + "]");
+                    if (gameState.Errored)
                     {
-                        _logger.Error(this.GameState.errorText);
+                        _logger.Error(gameState.ErrorText);
                         Thread.Sleep(1000);
                     }
                 }
@@ -132,33 +119,14 @@ namespace Vindinium
             }
         }
 
-        private Hero Dictionary2Hero(IDictonary<string, object> inp) = {
-            var outp = new Hero();
-            outp.
-        }
-
-        private void Deserialize(string json)
-        {
-            var gameResponse = JsonConvert.DeserializeObject<IDictionary<string, object>>(json);
 
 
-            _playURL = new Uri((string)gameResponse["playUrl"]);
-            this.GameState.viewURL = new Uri((string)gameResponse["viewUrl"]);
 
-            GameState.myHero = gameResponse["hero"];
 
-            var game = (IDictionary<string, object>) gameResponse["game"];
 
-            GameState.heroes = game["heroes"];
 
-            GameState.currentTurn = (int)game["turn"];
-            GameState.maxTurns = (int)game["maxTurns"];
-            GameState.finished = (bool)game["finished"];
-            var board = (IDictionary<string, object>)game["board"];
-            GameState.CreateBoard((int)board["size"], (string)board["tiles"]);
-        }
 
-        private void MoveHero(string direction)
+        private GameState MoveHero(string direction, Uri playURL)
         {
             string myParameters = "key=" + _key + "&dir=" + direction;
             
@@ -169,16 +137,15 @@ namespace Vindinium
 
                 try
                 {
-                    string result = client.UploadString(_playURL, myParameters);
-                    Deserialize(result);
+                    string result = client.UploadString(playURL, myParameters);
+                    return new GameState(result);
                 }
                 catch (WebException exception)
                 {
-                    GameState.errored = true;
-                    using (var reader = new StreamReader(exception.Response.GetResponseStream()))
-                    {
-                        GameState.errorText = reader.ReadToEnd();
-                    }
+                    _logger.Error("Failed to contact ["+playURL+"]");
+                    _logger.Error("WebException ["+exception+"]", exception);
+
+                    return new GameState(exception);
                 }
             }
         }
