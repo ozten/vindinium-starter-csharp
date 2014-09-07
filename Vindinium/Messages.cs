@@ -10,30 +10,83 @@ using Newtonsoft.Json.Linq;
 
 namespace Vindinium
 {
+    /// <summary>
+    /// The current game state.
+    /// </summary>
     public sealed class GameState
-    {
+    { 
         private Tile[][] _jaggedTiles;
 
+        /// <summary>
+        /// Gets the x-height of the board.
+        /// </summary>
+        /// <remarks>Presently the x- and y-heights are always the same.</remarks>
+        /// <value>The x-height.</value>
         public int? X { get; private set; }
 
+        /// <summary>
+        /// Gets the y-height of the board.
+        /// </summary>
+        /// <remarks>Presently the x- and y-heights are always the same.</remarks>
+        /// <value>The y-height.</value>
         public int? Y { get; private set; }
 
-        // TODO should we make this internal? --George
-        public Uri ViewURL { get; private set; }
-
+        /// <summary>
+        /// Represents the user's own hero.
+        /// </summary>
+        /// <value>My hero.</value>
         public Hero MyHero { get; private set; }
 
+        /// <summary>
+        /// Gets all the heroes.
+        /// </summary>
+        /// <value>The heroes.</value>
         public IList<Hero> Heroes { get; private set; }
 
+        /// <summary>
+        /// Gets the number of the current turn.
+        /// </summary>
+        /// <value>The current turn.</value>
         public int CurrentTurn { get; private set; }
 
+        /// <summary>
+        /// Gets the total number of turns.
+        /// </summary>
+        /// <value>The max turns.</value>
         public int MaxTurns { get; private set; }
 
+        /// <summary>
+        /// Gets a value indicating whether the game is finished.
+        /// </summary>
+        /// <value><c>true</c> if finished; otherwise, <c>false</c>.</value>
         public bool Finished { get; private set; }
 
+
+        /// <summary>
+        /// Gets a value indicating whether we failed to connect to the server or not.
+        /// </summary>
+        /// <value><c>true</c> if errored; otherwise, <c>false</c>.</value>
         public bool Errored { get; private set; }
 
+        /// <summary>
+        /// Gets the text of the error, if any.
+        /// </summary>
+        /// <value>The error text.</value>
         public string ErrorText { get; private set; }
+
+        /// <summary>
+        /// Gets the tile with x and y coordinates specified.
+        /// </summary>
+        /// <remarks>May throw an exception if x or y are out of range.</remarks>
+        /// <returns>The tile in question.</returns>
+        /// <param name="x">The x coordinate.</param>
+        /// <param name="y">The y coordinate.</param>
+        public Tile GetTile(int x, int y)
+        {
+            return _jaggedTiles[y][x];
+        }
+
+        internal Uri ViewURL { get; private set; }
 
         internal Uri PlayURL { get; private set; }
 
@@ -95,6 +148,7 @@ namespace Vindinium
             var tiles = Util.JToken2T<string>(board, "tiles");
             this.CreateBoard(size, tiles);
         }
+
 
         private void CreateBoard(int? size, string data)
         {
@@ -184,50 +238,126 @@ namespace Vindinium
                 }
             }
         }
-
-        public Tile GetTile(int x, int y)
-        {
-            return _jaggedTiles[y][x];
-        }
     }
 
+    /// <summary>
+    /// Tile of the board.
+    /// </summary>
     public enum Tile
     {
+        /// <summary>
+        /// The first hero.
+        /// </summary>
         Hero1,
+        /// <summary>
+        /// The second hero.
+        /// </summary>
         Hero2,
+        /// <summary>
+        /// The third hero.
+        /// </summary>
         Hero3,
+        /// <summary>
+        /// The fourth hero.
+        /// </summary>
         Hero4,
+        /// <summary>
+        /// Some impassable wood.
+        /// </summary>
         ImpassableWood,
+        /// <summary>
+        /// A free square.
+        /// </summary>
         Free,
+        /// <summary>
+        /// A tavern.
+        /// </summary>
         Tavern,
+        /// <summary>
+        /// A neutral gold mine.
+        /// </summary>
         GoldMineNeutral,
+        /// <summary>
+        /// A gold mine belonging to the first hero.
+        /// </summary>
         GoldMine1,
+        /// <summary>
+        /// A gold mine belonging to the second hero.
+        /// </summary>
         GoldMine2,
+        /// <summary>
+        /// A gold mine belonging to the third hero.
+        /// </summary>
         GoldMine3,
+        /// <summary>
+        /// A gold mine belonging to the fourth hero.
+        /// </summary>
         GoldMine4
     }
 
+    /// <summary>
+    /// Directions you can go in.
+    /// </summary>
     public enum Direction
     {
+        /// <summary>
+        /// Stay where you are.
+        /// </summary>
         Stay,
+        /// <summary>
+        /// Go north.
+        /// </summary>
         North,
+        /// <summary>
+        /// Go east.
+        /// </summary>
         East,
+        /// <summary>
+        /// Go south.
+        /// </summary>
         South,
+        /// <summary>
+        /// Go west.
+        /// </summary>
         West
     }
 
+    /// <summary>
+    /// A Position.
+    /// </summary>
     public sealed class Pos
     {
+        /// <summary>
+        /// Gets the x-coordinate.
+        /// </summary>
+        /// <value>The x.</value>
         public int? X
         {
             get;
-            internal set;
+            private set;
         }
 
+        /// <summary>
+        /// Gets the y-coordinate.
+        /// </summary>
+        /// <value>The y.</value>
         public int? Y
         {
             get;
-            internal set;
+            private set;
+        }
+
+        /// <param name="p">P.</param>
+        public static implicit operator Tuple<int?,int?>(Pos p)
+        {
+            if (p != null)
+            {
+                return new Tuple<int?, int?>(p.X, p.Y);
+            }
+            else
+            {
+                return null;
+            }
         }
 
 
@@ -236,13 +366,12 @@ namespace Vindinium
             this.Y = Util.JToken2NullableT<int>(inp, "y");
         }
 
-        public static implicit operator Tuple<int?,int?>(Pos p)
-        {
-            return new Tuple<int?, int?>(p.X, p.Y);
-        }
 
     }
 
+    /// <summary>
+    /// Hero.
+    /// </summary>
     public sealed class Hero
     {
         internal Hero(IDictionary<string, JToken> inp) {
@@ -257,46 +386,82 @@ namespace Vindinium
             this.SpawnPos = new Pos(inp["spawnPos"] as JObject);
         }
 
+        /// <summary>
+        /// Gets the identifier of the hero.
+        /// </summary>
+        /// <value>The identifier.</value>
         public int? Id
         {
             get; private set;
         }
 
+        /// <summary>
+        /// Gets the name of the hero.
+        /// </summary>
+        /// <value>The name.</value>
         public string Name
         {
             get; private set;
         }
 
+        /// <summary>
+        /// Gets the elo rating of the hero.
+        /// </summary>
+        /// <value>The elo.</value>
         public int? Elo
         {
             get; private set;
         }
 
+        /// <summary>
+        /// Gets the position of the hero.
+        /// </summary>
+        /// <value>The position.</value>
         public Pos Pos
         {
             get; private set;
         }
 
+        /// <summary>
+        /// Gets the life remaining of the hero.
+        /// </summary>
+        /// <value>The life.</value>
         public int? Life
         {
             get; private set;
         }
 
+        /// <summary>
+        /// Gets the gold of the hero.
+        /// </summary>
+        /// <value>The gold.</value>
         public int? Gold
         {
             get; private set;
         }
 
+        /// <summary>
+        /// Gets the number of mines the hero has.
+        /// </summary>
+        /// <value>The mine count.</value>
         public int? MineCount
         {
             get; private set;
         }
 
+        /// <summary>
+        /// Gets the spawn position of the hero.
+        /// </summary>
+        /// <value>The spawn position.</value>
         public Pos SpawnPos
         {
             get; private set;
         }
 
+        /// <summary>
+        /// Gets whether the hero has crashed or not.
+        /// </summary>
+        /// <value>The crashed.</value>
         public bool? Crashed
         {
             get; private set;

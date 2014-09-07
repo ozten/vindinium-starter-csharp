@@ -4,7 +4,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Vindinium
 {
-    public static class Util
+    internal static class Util
     {
 
         internal static T? JToken2NullableT<T>(IDictionary<string, JToken> inp, string key) where T : struct

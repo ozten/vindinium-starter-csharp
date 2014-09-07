@@ -7,15 +7,27 @@ using System.Threading.Tasks;
 
 namespace Vindinium
 {
-    public class RandomBot : IBot
+    /// <summary>
+    /// Random bot.
+    /// </summary>
+    public sealed class RandomBot : IBot
     {
         Random random = new Random();
 
+        /// <summary>
+        /// Gets the name of this Bot.
+        /// </summary>
+        /// <value>The name of this Bot.</value>
         public String Name
         {
             get { return "random bot"; }
         }
 
+        /// <summary>
+        /// Gets the direction to move the hero following the state specified.
+        /// </summary>
+        /// <remarks>This implementation ignores the state and chooses a random direction.</remarks>
+        /// <param name="gameState">The current game state.</param>
         public Direction Move(GameState gameState)
         {
             var i = random.Next(0, 6);
