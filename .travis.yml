@@ -4,6 +4,7 @@ env:
   - EnableNuGetPackageRestore=true
  
 install:
+  - mozroots --import --sync
   - wget http://nuget.org/nuget.exe
   - chmod +x nuget.exe
   - sudo apt-get update
