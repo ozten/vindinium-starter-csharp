@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System.IO;
+using System.Runtime.Serialization.Json;
+using System.Text;
 using Vindinium.Common.DataStructures;
 
 namespace Vindinium.Game.Logic
@@ -7,46 +9,14 @@ namespace Vindinium.Game.Logic
 	{
 		public GameResponse Start()
 		{
-			const string gameId = "gameId";
-			const string token = "token";
-			const string server = "http://localhost/vindinium";
-			const int size = 10;
-			return new GameResponse
-			       	{
-			       		Game = new Common.DataStructures.Game
-			       		       	{
-			       		       		Id = gameId,
-			       		       		Players = new List<Hero> {CreateHero(1), CreateHero(2), CreateHero(3), CreateHero(4)},
-			       		       		Turn = 1,
-			       		       		MaxTurns = 1200,
-			       		       		Board = new Board
-			       		       		        	{
-			       		       		        		Size = size,
-			       		       		        		MapText = "$-  @1@2@3@4[]##".PadLeft(size*size*2, '#')
-			       		       		        	}
-			       		       	}
-			       		,
-			       		Self = CreateHero(1),
-			       		Token = token,
-			       		PlayUrl = string.Format("{0}/api/{1}/{2}/play", server, gameId, token),
-			       		ViewUrl = string.Format("{0}/{1}", server, gameId)
-			       	};
-		}
-
-		private static Hero CreateHero(byte id)
-		{
-			var pos = new Pos {X = id, Y = 0};
-			var spawnPos = new Pos {X = id, Y = 0};
-			return new Hero
-			       	{
-			       		Life = 100,
-			       		Id = id,
-			       		Pos = pos,
-			       		SpawnPos = spawnPos,
-			       		Elo = 1200,
-			       		Name = "test",
-			       		UserId = string.Format("User{0}", id)
-			       	};
+			const string json =
+				@"{""game"":{""id"":""the-game-id"",""turn"":0,""maxTurns"":20,""heroes"":[{""id"":1,""name"":""GrimTrick"",""userId"":""8aq2nq2b"",""elo"":1213,""pos"":{""x"":2,""y"":2},""life"":100,""gold"":0,""mineCount"":0,""spawnPos"":{""x"":2,""y"":2},""crashed"":false},{""id"":2,""name"":""random"",""pos"":{""x"":7,""y"":2},""life"":100,""gold"":0,""mineCount"":0,""spawnPos"":{""x"":7,""y"":2},""crashed"":false},{""id"":3,""name"":""random"",""pos"":{""x"":7,""y"":7},""life"":100,""gold"":0,""mineCount"":0,""spawnPos"":{""x"":7,""y"":7},""crashed"":false},{""id"":4,""name"":""random"",""pos"":{""x"":2,""y"":7},""life"":100,""gold"":0,""mineCount"":0,""spawnPos"":{""x"":2,""y"":7},""crashed"":false}],""board"":{""size"":10,""tiles"":""        [][]        ##                ##$-  @1$-####$-@4  $-##  ##        ##  ##                                        ##  ##        ##  ##$-  @2$-####$-@3  $-##                ##        [][]        ""},""finished"":false},""hero"":{""id"":1,""name"":""GrimTrick"",""userId"":""8aq2nq2b"",""elo"":1213,""pos"":{""x"":2,""y"":2},""life"":100,""gold"":0,""mineCount"":0,""spawnPos"":{""x"":2,""y"":2},""crashed"":false},""token"":""the-token"",""viewUrl"":""http://vindinium.org/the-game-id"",""playUrl"":""http://vindinium.org/api/the-game-id/the-token/play""}";
+			byte[] byteArray = Encoding.UTF8.GetBytes(json);
+			using (var stream = new MemoryStream(byteArray))
+			{
+				var ser = new DataContractJsonSerializer(typeof (GameResponse));
+				return ser.ReadObject(stream) as GameResponse;
+			}
 		}
 	}
 }
