@@ -9,7 +9,7 @@ namespace Vindinium.Common.DataStructures
 		[DataMember(Name = "name")]
 		public string Name { get; set; }
 
-		[DataMember(Name = "spanPos")]
+		[DataMember(Name = "spawnPos")]
 		public Pos SpawnPos { get; set; }
 
 		[DataMember(Name = "pos")]
