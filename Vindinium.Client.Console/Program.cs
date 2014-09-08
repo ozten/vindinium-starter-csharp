@@ -76,6 +76,8 @@ namespace Vindinium.Client.Console
 		{
 			while (gameManager.Finished == false && gameManager.GameHasError == false)
 			{
+				Logger.Info("Life: {0}", gameManager.MyHero.Life);
+
 				Direction nextMove = bot.DetermineNextMove();
 				gameManager.MoveHero(nextMove);
 			}
