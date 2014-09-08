@@ -88,11 +88,11 @@ namespace Vindinium.Client.Logic
 				PreviousBoard = Board;
 				_playUrl = new Uri(gameResponse.PlayUrl, UriKind.Absolute);
 				ViewUrl = gameResponse.ViewUrl;
-				MyHero = gameResponse.Hero;
+				MyHero = gameResponse.Self;
 
 				Game game = gameResponse.Game;
 
-				Heroes = game.Heroes;
+				Heroes = game.Players;
 				CurrentTurn = game.Turn;
 				MaxTurns = game.MaxTurns;
 				Finished = game.Finished;

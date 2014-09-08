@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{CE551221-F16B-4121-80D3-3155B4458676}</ProjectGuid>
+    <ProjectGuid>{B7EE64E3-8BF3-44E5-A530-722BAE0B8D7D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Vindinium.Game.Logic</RootNamespace>
-    <AssemblyName>Vindinium.Game.Logic</AssemblyName>
+    <RootNamespace>Vindinium.Game.Logic.Tests</RootNamespace>
+    <AssemblyName>Vindinium.Game.Logic.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -31,17 +31,24 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="nunit.framework">
+      <HintPath>..\Assemblies\nunit.framework.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GameServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="GameServerStartTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Vindinium.Common\Vindinium.Common.csproj">
       <Project>{32FE6E9F-2408-4D72-9AF6-60DD4D443825}</Project>
       <Name>Vindinium.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Vindinium.Server.Logic\Vindinium.Game.Logic.csproj">
+      <Project>{CE551221-F16B-4121-80D3-3155B4458676}</Project>
+      <Name>Vindinium.Game.Logic</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

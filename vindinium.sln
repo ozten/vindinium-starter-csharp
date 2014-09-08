@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vindinium.Game.Logic", "Vin
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vindinium.Common", "Vindinium.Common\Vindinium.Common.csproj", "{32FE6E9F-2408-4D72-9AF6-60DD4D443825}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vindinium.Game.Logic.Tests", "Vindinium.Game.Logic.Tests\Vindinium.Game.Logic.Tests.csproj", "{B7EE64E3-8BF3-44E5-A530-722BAE0B8D7D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -65,6 +67,16 @@ Global
 		{32FE6E9F-2408-4D72-9AF6-60DD4D443825}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{32FE6E9F-2408-4D72-9AF6-60DD4D443825}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{32FE6E9F-2408-4D72-9AF6-60DD4D443825}.Release|x86.ActiveCfg = Release|Any CPU
+		{B7EE64E3-8BF3-44E5-A530-722BAE0B8D7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7EE64E3-8BF3-44E5-A530-722BAE0B8D7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7EE64E3-8BF3-44E5-A530-722BAE0B8D7D}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{B7EE64E3-8BF3-44E5-A530-722BAE0B8D7D}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{B7EE64E3-8BF3-44E5-A530-722BAE0B8D7D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B7EE64E3-8BF3-44E5-A530-722BAE0B8D7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7EE64E3-8BF3-44E5-A530-722BAE0B8D7D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7EE64E3-8BF3-44E5-A530-722BAE0B8D7D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{B7EE64E3-8BF3-44E5-A530-722BAE0B8D7D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{B7EE64E3-8BF3-44E5-A530-722BAE0B8D7D}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -73,5 +85,6 @@ Global
 		{0AB2A300-42EC-4EE4-8B92-59718EFA4CFD} = {1DE3F56F-8581-4B8D-925B-0A6B62A00CAE}
 		{ABA6B2FD-DD17-432D-AFB6-E684FAADF87F} = {1DE3F56F-8581-4B8D-925B-0A6B62A00CAE}
 		{CE551221-F16B-4121-80D3-3155B4458676} = {4E57BED8-D78E-4C3B-BEE6-6EC9D27FCE8B}
+		{B7EE64E3-8BF3-44E5-A530-722BAE0B8D7D} = {4E57BED8-D78E-4C3B-BEE6-6EC9D27FCE8B}
 	EndGlobalSection
 EndGlobal

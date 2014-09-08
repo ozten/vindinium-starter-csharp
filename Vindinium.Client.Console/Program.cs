@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Vindinium.Client.Logic;
 using Vindinium.Common;
+using Vindinium.Common.DataStructures;
 
 namespace Vindinium.Client.Console
 {
@@ -49,7 +52,6 @@ namespace Vindinium.Client.Console
 			Logger.Debug("View URL: {0}", gameManager.ViewUrl);
 
 			PlayGame(bot, gameManager);
-
 			if (gameManager.GameHasError)
 			{
 				Logger.Error(gameManager.GameErrorMessage);
@@ -76,6 +78,34 @@ namespace Vindinium.Client.Console
 			{
 				Direction nextMove = bot.DetermineNextMove();
 				gameManager.MoveHero(nextMove);
+			}
+			if (!gameManager.GameHasError)
+			{
+				LogEndGameResults(gameManager);
+			}
+		}
+
+		private static void LogEndGameResults(GameManager gameManager)
+		{
+			List<Hero> heroes = gameManager.Heroes;
+			int maxGold = heroes.Max(h => h.Gold);
+			Hero[] topHeroes = heroes.Where(h => h.Gold == maxGold).ToArray();
+			int count = topHeroes.Count();
+			if (count == 1)
+			{
+				Hero winner = topHeroes.First();
+				if (winner == gameManager.MyHero)
+				{
+					Logger.Info("Game Won");
+				}
+				else
+				{
+					Logger.Info("Game Lost. Winner is {0}", winner.Name);
+				}
+			}
+			else
+			{
+				Logger.Info("Game was a draw");
 			}
 		}
 
