@@ -7,10 +7,12 @@ namespace Vindinium.Common.DataStructures
 	public class Pos : IEquatable<Pos>
 	{
 		[DataMember(Name = "x")]
-		public int X { get; set; }
+		public int Y { get; set; }
 
 		[DataMember(Name = "y")]
-		public int Y { get; set; }
+		public int X { get; set; }
+
+		//TODO: Change x/y back. Map reads backwards?
 
 		#region IEquatable<Pos> Members
 
