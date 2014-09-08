@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using Vindinium.Common.DataStructures;
@@ -23,24 +24,50 @@ namespace Vindinium.Game.Logic.Tests
 		private GameResponse _gameResponse;
 		private Common.DataStructures.Game _game;
 
-		private List<string> GetTokens()
+		private Dictionary<string, int> GetTokens()
 		{
-			var tokens = new List<string>();
+			var tokens = new Dictionary<string, int>();
 			int i = 0;
 			while (i < _game.Board.MapText.Length)
 			{
 				string token = _game.Board.MapText.Substring(i, 2);
-				if (!tokens.Contains(token))
-					tokens.Add(token);
+				if (!tokens.ContainsKey(token))
+					tokens.Add(token, 1);
+				else
+				{
+					tokens[token]++;
+				}
 				i += 2;
 			}
 			return tokens;
 		}
 
+		private string GetMapToken(Pos pos)
+		{
+			int size = _game.Board.Size;
+			int location = (2*size)*pos.Y;
+			location += pos.X*2;
+			string mapToken = _game.Board.MapText.Substring(location, 2);
+			return mapToken;
+		}
+
+		[Test]
+		public void AllOtherPlayersWithoutUserId()
+		{
+			Assert.That(_game.Players, Has.Exactly(1).Property("UserId").EqualTo(_gameResponse.Self.UserId));
+			Assert.That(_game.Players, Has.Exactly(3).Property("UserId").Null);
+		}
+
+		[Test]
+		public void AllPlayersAtSpawnPolsition()
+		{
+			Assert.That(_game.Players.Select(h => h.Pos), Is.EqualTo(_game.Players.Select(h => h.SpawnPos)));
+		}
+
 		[Test]
 		public void AllPlayersHaveEloScore()
 		{
-			Assert.That(_game.Players, Has.All.Property("Elo").EqualTo(1200));
+			Assert.That(_game.Players, Has.All.Property("Elo").InRange(0, 3000));
 		}
 
 		[Test]
@@ -86,6 +113,20 @@ namespace Vindinium.Game.Logic.Tests
 		}
 
 		[Test]
+		public void BoardShowsPlayersAtPositions()
+		{
+			Console.WriteLine(_game.Board);
+			foreach (Hero player in _game.Players)
+			{
+				string playerToken = string.Format("@{0}", player.Id);
+				string mapToken = GetMapToken(player.SpawnPos);
+				//mapToken = GetMapToken(new Pos(){X=3,Y=3});
+				Console.WriteLine(player);
+				Assert.That(mapToken, Is.EqualTo(playerToken));
+			}
+		}
+
+		[Test]
 		public void EachHeroHasAnIdentity()
 		{
 			Assert.That(_game.Players, Has.All.Property("Id").InRange(1, 4));
@@ -123,21 +164,9 @@ namespace Vindinium.Game.Logic.Tests
 		}
 
 		[Test]
-		public void HeroesAreAtSpawn()
-		{
-			Assert.That(_game.Players.Select(h => h.Pos), Is.EqualTo(_game.Players.Select(h => h.SpawnPos)));
-		}
-
-		[Test]
-		public void HeroesAreUnique()
-		{
-			Assert.That(_game.Players.Select(h => h.UserId), Is.Unique);
-		}
-
-		[Test]
 		public void MapDoesNotHaveUnexpectedTokens()
 		{
-			List<string> actualTokens = GetTokens();
+			IEnumerable<string> actualTokens = GetTokens().Select(t => t.Key);
 			var expectedTokens = new[] {"@1", "@2", "@3", "@4", "$1", "$2", "$3", "$4", "[]", "$-", "##", "  "};
 			Assert.That(actualTokens, Is.SubsetOf(expectedTokens));
 		}
@@ -145,7 +174,7 @@ namespace Vindinium.Game.Logic.Tests
 		[Test]
 		public void MapHasEmptyMines()
 		{
-			List<string> actualTokens = GetTokens();
+			string[] actualTokens = GetTokens().Select(t => t.Key).ToArray();
 			Assert.That(actualTokens, Has.Member("$-"));
 			Assert.That(actualTokens, Has.No.Member("$1"));
 			Assert.That(actualTokens, Has.No.Member("$2"));
@@ -156,32 +185,38 @@ namespace Vindinium.Game.Logic.Tests
 		[Test]
 		public void MapHasEmptyPath()
 		{
-			List<string> actualTokens = GetTokens();
+			IEnumerable<string> actualTokens = GetTokens().Select(t => t.Key);
 			Assert.That(actualTokens, Has.Member("  "));
+		}
+
+		[Test]
+		public void MapHasFourTaverns()
+		{
+			Dictionary<string, int> actualTokens = GetTokens();
+			Assert.That(actualTokens["[]"], Is.EqualTo(4));
 		}
 
 		[Test]
 		public void MapHasImpassibleWoods()
 		{
-			List<string> actualTokens = GetTokens();
+			IEnumerable<string> actualTokens = GetTokens().Select(t => t.Key);
 			Assert.That(actualTokens, Has.Member("##"));
 		}
 
 		[Test]
 		public void MapHasPlayers()
 		{
-			List<string> actualTokens = GetTokens();
-			Assert.That(actualTokens, Has.Member("@1"));
-			Assert.That(actualTokens, Has.Member("@2"));
-			Assert.That(actualTokens, Has.Member("@3"));
-			Assert.That(actualTokens, Has.Member("@4"));
+			Dictionary<string, int> actualTokens = GetTokens();
+			Assert.That(actualTokens["@1"], Is.EqualTo(1));
+			Assert.That(actualTokens["@2"], Is.EqualTo(1));
+			Assert.That(actualTokens["@3"], Is.EqualTo(1));
+			Assert.That(actualTokens["@4"], Is.EqualTo(1));
 		}
 
 		[Test]
-		public void MapHasTaverns()
+		public void MapIsSymmetric()
 		{
-			List<string> actualTokens = GetTokens();
-			Assert.That(actualTokens, Has.Member("[]"));
+			Assert.Inconclusive();
 		}
 
 		[Test]
@@ -223,6 +258,12 @@ namespace Vindinium.Game.Logic.Tests
 		}
 
 		[Test]
+		public void PlayersFirstTurnIsRelatedToSelfId()
+		{
+			Assert.That(_gameResponse.Game.Turn, Is.EqualTo(_gameResponse.Self.Id - 1));
+		}
+
+		[Test]
 		public void SelfIsInPlayersList()
 		{
 			Assert.That(_game.Players, Has.Member(_gameResponse.Self));
@@ -244,12 +285,6 @@ namespace Vindinium.Game.Logic.Tests
 		public void TokenIsProvided()
 		{
 			Assert.That(_gameResponse.Token, Is.Not.Null.And.Not.Empty);
-		}
-
-		[Test]
-		public void TurnIsEqualToSelfId()
-		{
-			Assert.That(_gameResponse.Game.Turn, Is.EqualTo(_gameResponse.Self.Id));
 		}
 
 		[Test]
