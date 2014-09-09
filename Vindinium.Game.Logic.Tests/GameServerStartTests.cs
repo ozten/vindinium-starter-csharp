@@ -9,17 +9,15 @@ namespace Vindinium.Game.Logic.Tests
 	[TestFixture]
 	public class GameServerStartTests
 	{
-		#region Setup/Teardown
-
-		[SetUp]
-		public void Init()
+		[TestFixtureSetUp]
+		public void RunBeforeFirstTest()
 		{
 			var server = new GameServer();
 			_gameResponse = server.Start();
 			_game = _gameResponse.Game;
-		}
 
-		#endregion
+			Console.WriteLine(_game.Board);
+		}
 
 		private GameResponse _gameResponse;
 		private Common.DataStructures.Game _game;
@@ -49,6 +47,21 @@ namespace Vindinium.Game.Logic.Tests
 			location += pos.X*2;
 			string mapToken = _game.Board.MapText.Substring(location, 2);
 			return mapToken;
+		}
+
+		private string[,] GetMap(Board board)
+		{
+			var tiles = new string[board.Size,board.Size];
+			int i = 0;
+			while (i < board.MapText.Length)
+			{
+				string token = board.MapText.Substring(i, 2);
+				int x = (i/2)%board.Size;
+				int y = ((i/2) - x)/board.Size;
+				tiles[x, y] = token;
+				i += 2;
+			}
+			return tiles;
 		}
 
 		[Test]
@@ -115,13 +128,10 @@ namespace Vindinium.Game.Logic.Tests
 		[Test]
 		public void BoardShowsPlayersAtPositions()
 		{
-			Console.WriteLine(_game.Board);
 			foreach (Hero player in _game.Players)
 			{
 				string playerToken = string.Format("@{0}", player.Id);
 				string mapToken = GetMapToken(player.SpawnPos);
-				//mapToken = GetMapToken(new Pos(){X=3,Y=3});
-				Console.WriteLine(player);
 				Assert.That(mapToken, Is.EqualTo(playerToken));
 			}
 		}
@@ -216,7 +226,33 @@ namespace Vindinium.Game.Logic.Tests
 		[Test]
 		public void MapIsSymmetric()
 		{
-			Assert.Inconclusive();
+			string[,] map = GetMap(_game.Board);
+			int half = _game.Board.Size/2;
+			int upperBound = _game.Board.Size - 1;
+			for (int x1 = 0; x1 < half; x1++)
+			{
+				for (int y1 = 0; y1 < half; y1++)
+				{
+					int x2 = upperBound - x1;
+					int y2 = upperBound - y1;
+
+
+					string token = map[x1, y1];
+					if (token.StartsWith("@"))
+					{
+						Assert.That(map[x1, y1], Is.StringMatching("@\\d"));
+						Assert.That(map[x1, y2], Is.StringMatching("@\\d"));
+						Assert.That(map[x2, y2], Is.StringMatching("@\\d"));
+						Assert.That(map[x2, y1], Is.StringMatching("@\\d"));
+					}
+					else
+					{
+						Assert.That(map[x1, y2], Is.EqualTo(token), "{0}x{1} != {2}x{3}", x1, y1, x1, y2);
+						Assert.That(map[x2, y2], Is.EqualTo(token), "{0}x{1} != {2}x{3}", x1, y1, x2, y2);
+						Assert.That(map[x2, y1], Is.EqualTo(token), "{0}x{1} != {2}x{3}", x1, y1, x2, y1);
+					}
+				}
+			}
 		}
 
 		[Test]
