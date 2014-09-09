@@ -43,6 +43,7 @@
     <Compile Include="DataStructures\Pos.cs" />
     <Compile Include="Direction.cs" />
     <Compile Include="Entities\IApiRequest.cs" />
+    <Compile Include="EnvironmentType.cs" />
     <Compile Include="LogLevel.cs" />
     <Compile Include="Services\IApiCaller.cs" />
     <Compile Include="Entities\IApiResponse.cs" />

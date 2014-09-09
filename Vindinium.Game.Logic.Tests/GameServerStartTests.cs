@@ -78,12 +78,6 @@ namespace Vindinium.Game.Logic.Tests
 		}
 
 		[Test]
-		public void AllPlayersHaveEloScore()
-		{
-			Assert.That(_game.Players, Has.All.Property("Elo").InRange(0, 3000));
-		}
-
-		[Test]
 		public void AllPlayersHaveFullLife()
 		{
 			Assert.That(_game.Players, Has.All.Property("Life").EqualTo(100));

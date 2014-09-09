@@ -19,7 +19,7 @@ namespace Vindinium.Common.DataStructures
 		public int MineCount { get; set; }
 
 		[DataMember(Name = "elo")]
-		public int Elo { get; set; }
+		public int? Elo { get; set; }
 
 		[DataMember(Name = "life")]
 		public int Life { get; set; }
