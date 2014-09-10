@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Vindinium.Common;
 using Vindinium.Common.DataStructures;
@@ -18,12 +17,12 @@ namespace Vindinium.Game.Logic
 
 		public GameResponse Start(string mapText)
 		{
-			var size = (int) Math.Sqrt(mapText.Length/2d);
+			var grid = new Grid {MapText = mapText};
 			_response = new GameResponse
 			            	{
 			            		Game = new Common.DataStructures.Game
 			            		       	{
-			            		       		Board = new Board {MapText = mapText, Size = size},
+			            		       		Board = new Board {MapText = grid.MapText, Size = grid.Size},
 			            		       		Finished = false,
 			            		       		Id = "the-game-id",
 			            		       		MaxTurns = 20,
@@ -35,11 +34,11 @@ namespace Vindinium.Game.Logic
 			            		       		          				Name = "GrimTrick",
 			            		       		          				UserId = "8aq2nq2b",
 			            		       		          				Elo = 1213,
-			            		       		          				Pos = new Pos {X = 2, Y = 2},
+			            		       		          				Pos = grid.PositionOf("@1"),
 			            		       		          				Life = 100,
 			            		       		          				Gold = 0,
 			            		       		          				MineCount = 0,
-			            		       		          				SpawnPos = new Pos {X = 2, Y = 2},
+			            		       		          				SpawnPos = grid.PositionOf("@1"),
 			            		       		          				Crashed = false
 			            		       		          			},
 			            		       		          		new Hero
@@ -48,11 +47,11 @@ namespace Vindinium.Game.Logic
 			            		       		          				Name = "random",
 			            		       		          				UserId = null,
 			            		       		          				Elo = 1200,
-			            		       		          				Pos = new Pos {X = 2, Y = 7},
+			            		       		          				Pos = grid.PositionOf("@2"),
 			            		       		          				Life = 100,
 			            		       		          				Gold = 0,
 			            		       		          				MineCount = 0,
-			            		       		          				SpawnPos = new Pos {X = 2, Y = 7},
+			            		       		          				SpawnPos = grid.PositionOf("@2"),
 			            		       		          				Crashed = false
 			            		       		          			},
 			            		       		          		new Hero
@@ -61,11 +60,11 @@ namespace Vindinium.Game.Logic
 			            		       		          				Name = "random",
 			            		       		          				UserId = null,
 			            		       		          				Elo = 1200,
-			            		       		          				Pos = new Pos {X = 7, Y = 7},
+			            		       		          				Pos = grid.PositionOf("@3"),
 			            		       		          				Life = 100,
 			            		       		          				Gold = 0,
 			            		       		          				MineCount = 0,
-			            		       		          				SpawnPos = new Pos {X = 7, Y = 7},
+			            		       		          				SpawnPos = grid.PositionOf("@3"),
 			            		       		          				Crashed = false
 			            		       		          			},
 			            		       		          		new Hero
@@ -74,11 +73,11 @@ namespace Vindinium.Game.Logic
 			            		       		          				Name = "random",
 			            		       		          				UserId = null,
 			            		       		          				Elo = 1200,
-			            		       		          				Pos = new Pos {X = 7, Y = 2},
+			            		       		          				Pos = grid.PositionOf("@4"),
 			            		       		          				Life = 100,
 			            		       		          				Gold = 0,
 			            		       		          				MineCount = 0,
-			            		       		          				SpawnPos = new Pos {X = 7, Y = 2},
+			            		       		          				SpawnPos = grid.PositionOf("@4"),
 			            		       		          				Crashed = false
 			            		       		          			}
 			            		       		          	},
@@ -91,11 +90,11 @@ namespace Vindinium.Game.Logic
 			            		       		Name = "GrimTrick",
 			            		       		UserId = "8aq2nq2b",
 			            		       		Elo = 1213,
-			            		       		Pos = new Pos {X = 2, Y = 2},
+			            		       		Pos = grid.PositionOf("@1"),
 			            		       		Life = 100,
 			            		       		Gold = 0,
 			            		       		MineCount = 0,
-			            		       		SpawnPos = new Pos {X = 2, Y = 2},
+			            		       		SpawnPos = grid.PositionOf("@1"),
 			            		       		Crashed = false
 			            		       	},
 			            		Token = "the-token",
@@ -106,9 +105,25 @@ namespace Vindinium.Game.Logic
 
 		public GameResponse Play(string token, Direction north)
 		{
-			_response.Game.Board.MapText = "@1      ";
+			var map = new Grid {MapText = _response.Game.Board.MapText};
+			lock (map.SynchronizationRoot)
+			{
+				Pos playerPos = _response.Self.Pos;
+				var northPos = new Pos {Y = -1};
+				Pos targetPos = playerPos + northPos;
+				string targetToken = map[targetPos.X, targetPos.Y];
+				if (targetToken != "##")
+				{
+					string playerToken = map[playerPos.X, playerPos.Y];
+					map[targetPos.X, targetPos.Y] = playerToken;
+					map[playerPos.X, playerPos.Y] = targetToken;
+				}
+				_response.Game.Board.MapText = map.MapText;
+			}
+
 			return _response;
 		}
+
 
 		public GameResponse Start(EnvironmentType environmentType)
 		{

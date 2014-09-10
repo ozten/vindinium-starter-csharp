@@ -11,9 +11,18 @@ namespace Vindinium.Game.Logic.Tests
 		public void CanMoveToEmptyArea()
 		{
 			var server = new GameServer();
-			GameResponse response = server.Start("    @1  ");
+			GameResponse response = server.Start("  ##@1##");
 			response = server.Play(response.Token, Direction.North);
-			Assert.That(response.Game.Board.MapText, Is.EqualTo("@1      "));
+			Assert.That(response.Game.Board.MapText, Is.EqualTo("@1##  ##"));
+		}
+
+		[Test]
+		public void CanNotMoveToWoods()
+		{
+			var server = new GameServer();
+			GameResponse response = server.Start("##  @1  ");
+			response = server.Play(response.Token, Direction.North);
+			Assert.That(response.Game.Board.MapText, Is.EqualTo("##  @1  "));
 		}
 	}
 }
