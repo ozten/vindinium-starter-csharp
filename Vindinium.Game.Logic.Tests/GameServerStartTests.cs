@@ -40,15 +40,6 @@ namespace Vindinium.Game.Logic.Tests
 			return tokens;
 		}
 
-		private string GetMapToken(Pos pos)
-		{
-			int size = _game.Board.Size;
-			int location = (2*size)*pos.Y;
-			location += pos.X*2;
-			string mapToken = _game.Board.MapText.Substring(location, 2);
-			return mapToken;
-		}
-
 		private string[,] GetMap(Board board)
 		{
 			var tiles = new string[board.Size,board.Size];
@@ -122,10 +113,11 @@ namespace Vindinium.Game.Logic.Tests
 		[Test]
 		public void BoardShowsPlayersAtPositions()
 		{
+			var grid = new Grid {MapText = _game.Board.MapText};
 			foreach (Hero player in _game.Players)
 			{
 				string playerToken = string.Format("@{0}", player.Id);
-				string mapToken = GetMapToken(player.SpawnPos);
+				string mapToken = grid[player.Pos];
 				Assert.That(mapToken, Is.EqualTo(playerToken));
 			}
 		}
