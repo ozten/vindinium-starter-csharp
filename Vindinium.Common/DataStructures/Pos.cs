@@ -7,12 +7,10 @@ namespace Vindinium.Common.DataStructures
 	public class Pos : IEquatable<Pos>
 	{
 		[DataMember(Name = "x")]
-		public int Y { get; set; }
-
-		[DataMember(Name = "y")]
 		public int X { get; set; }
 
-		//TODO: Change x/y back. Map reads backwards?
+		[DataMember(Name = "y")]
+		public int Y { get; set; }
 
 		#region IEquatable<Pos> Members
 
@@ -54,6 +52,11 @@ namespace Vindinium.Common.DataStructures
 		public static bool operator !=(Pos left, Pos right)
 		{
 			return !Equals(left, right);
+		}
+
+		public static Pos operator +(Pos left, Pos right)
+		{
+			return new Pos {X = left.X + right.X, Y = left.Y + right.Y};
 		}
 	}
 }
