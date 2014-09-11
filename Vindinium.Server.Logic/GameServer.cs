@@ -108,6 +108,12 @@ namespace Vindinium.Game.Logic
 			var map = new Grid {MapText = _response.Game.Board.MapText};
 			lock (map.SynchronizationRoot)
 			{
+				if (_response.Self.Life > 1)
+				{
+					_response.Self.Life--;
+				}
+				_response.Game.Players[0].Life = _response.Self.Life;
+
 				Pos playerPos = _response.Self.Pos;
 				var northPos = new Pos {Y = -1};
 				Pos targetPos = playerPos + northPos;

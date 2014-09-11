@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System.Linq;
+using NUnit.Framework;
 using Vindinium.Common;
 using Vindinium.Common.DataStructures;
 
@@ -17,6 +18,15 @@ namespace Vindinium.Game.Logic.Tests
 		}
 
 		[Test]
+		public void CanNotMoveOffMap()
+		{
+			var server = new GameServer();
+			GameResponse response = server.Start("@1      ");
+			response = server.Play(response.Token, Direction.North);
+			Assert.That(response.Game.Board.MapText, Is.EqualTo("@1      "));
+		}
+
+		[Test]
 		public void CanNotMoveToWoods()
 		{
 			var server = new GameServer();
@@ -26,12 +36,24 @@ namespace Vindinium.Game.Logic.Tests
 		}
 
 		[Test]
-		public void CanNotMoveOffMap()
+		public void PlayerDoesNotDieFromThirst()
 		{
 			var server = new GameServer();
-			GameResponse response = server.Start("@1      ");
+			GameResponse response = server.Start("  ##@1##");
+
+			for (int i = 0; i < 100; i++)
+				response = server.Play(response.Token, Direction.North);
+			Assert.That(response.Self.Life, Is.EqualTo(1));
+		}
+
+		[Test]
+		public void PlayerGetsThirsty()
+		{
+			var server = new GameServer();
+			GameResponse response = server.Start("  ##@1##");
 			response = server.Play(response.Token, Direction.North);
-			Assert.That(response.Game.Board.MapText, Is.EqualTo("@1      "));
+			Assert.That(response.Self.Life, Is.EqualTo(99));
+			Assert.That(response.Game.Players.First(p => p.Id == response.Self.Id).Life, Is.EqualTo(99));
 		}
 	}
 }
