@@ -79,6 +79,7 @@ namespace Vindinium.Game.Logic
 		public string this[Pos pos]
 		{
 			get { return this[pos.X, pos.Y]; }
+			set { this[pos.X, pos.Y] = value; }
 		}
 
 		public Pos PositionOf(string token)
