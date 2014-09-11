@@ -24,5 +24,14 @@ namespace Vindinium.Game.Logic.Tests
 			response = server.Play(response.Token, Direction.North);
 			Assert.That(response.Game.Board.MapText, Is.EqualTo("##  @1  "));
 		}
+
+		[Test]
+		public void CanNotMoveOffMap()
+		{
+			var server = new GameServer();
+			GameResponse response = server.Start("@1      ");
+			response = server.Play(response.Token, Direction.North);
+			Assert.That(response.Game.Board.MapText, Is.EqualTo("@1      "));
+		}
 	}
 }

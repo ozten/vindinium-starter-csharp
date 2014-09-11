@@ -111,6 +111,8 @@ namespace Vindinium.Game.Logic
 				Pos playerPos = _response.Self.Pos;
 				var northPos = new Pos {Y = -1};
 				Pos targetPos = playerPos + northPos;
+				if (targetPos.X < 1) targetPos.X = 1;
+				if (targetPos.Y < 1) targetPos.Y = 1;
 				string targetToken = map[targetPos.X, targetPos.Y];
 				if (targetToken != "##")
 				{
