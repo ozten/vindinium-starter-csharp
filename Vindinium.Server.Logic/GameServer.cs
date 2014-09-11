@@ -135,11 +135,13 @@ namespace Vindinium.Game.Logic
 					else
 					{
 						_response.Self.Life -= 20;
+						_response.Self.MineCount++;
 						map[targetPos] = "$1";
 					}
 				}
 				_response.Game.Board.MapText = map.MapText;
 				_response.Game.Players[0].Life = _response.Self.Life;
+				_response.Game.Players[0].MineCount = _response.Self.MineCount;
 			}
 
 			return _response;
