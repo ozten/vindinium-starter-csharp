@@ -70,7 +70,7 @@ namespace Vindinium
                     }
                 }).Start();
 
-                while (!(gameState.Finished))
+                while (!(gameState.Finished == false))
                 {
                     gameState = this.MoveHero(bot.Move(gameState).ToString(), gameState.PlayURL);
                     _logger.Info("completed turn [" + gameState.CurrentTurn.ToString() + "]");
@@ -79,7 +79,7 @@ namespace Vindinium
                         _logger.Error(gameState.ErrorText);
                         Thread.Sleep(1000);
                     }
-                }
+                    }
 
 
                 _logger.Info("[" + bot.Name + "] finished");
@@ -98,16 +98,7 @@ namespace Vindinium
         private GameState CreateGame()
         {
 
-            string uri;
-            
-            if (_trainingMode)
-            {
-                uri = _serverURL + "api/training";
-            }
-            else
-            {
-                uri = _serverURL + "api/arena";
-            }
+            Uri uri = new Uri(_serverURL + ( _trainingMode ? "api/training" : "api/arena"));
 
             string myParameters = "key=" + _key;
             if (_trainingMode)
@@ -115,14 +106,20 @@ namespace Vindinium
             if (_map != null)
                 myParameters += "&map=" + _map;
 
+            return Upload(uri, myParameters);
+        }
+
+        private GameState Upload(Uri uri, string parameters)
+        {
             //make the request
             using (WebClient client = new WebClient())
             {
                 client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
                 try
                 {
-                    string result = client.UploadString(uri, myParameters);
-                    return new GameState(result);
+                    string result = client.UploadString(uri, parameters);
+                    var gameResponse = JsonConvert.DeserializeObject<JObject>(result);
+                    return new GameState(gameResponse);
 
                 }
                 catch (WebException exception)
@@ -137,35 +134,10 @@ namespace Vindinium
         }
 
 
-
-
-
-
-
-
-
         private GameState MoveHero(string direction, Uri playURL)
         {
             string myParameters = "key=" + _key + "&dir=" + direction;
-            
-            //make the request
-            using (WebClient client = new WebClient())
-            {
-                client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
-
-                try
-                {
-                    string result = client.UploadString(playURL, myParameters);
-                    return new GameState(result);
-                }
-                catch (WebException exception)
-                {
-                    _logger.Error("Failed to contact ["+playURL+"]");
-                    _logger.Error("WebException ["+exception+"]", exception);
-
-                    return new GameState(exception);
-                }
-            }
+            return Upload(playURL, myParameters);
         }
     }
 }

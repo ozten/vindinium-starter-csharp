@@ -5,7 +5,6 @@ using System.Text;
 using System.Net;
 using System.IO;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Vindinium
@@ -47,19 +46,19 @@ namespace Vindinium
         /// Gets the number of the current turn.
         /// </summary>
         /// <value>The current turn.</value>
-        public int CurrentTurn { get; private set; }
+        public int? CurrentTurn { get; private set; }
 
         /// <summary>
         /// Gets the total number of turns.
         /// </summary>
         /// <value>The max turns.</value>
-        public int MaxTurns { get; private set; }
+        public int? MaxTurns { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether the game is finished.
         /// </summary>
         /// <value><c>true</c> if finished; otherwise, <c>false</c>.</value>
-        public bool Finished { get; private set; }
+        public bool? Finished { get; private set; }
 
 
         /// <summary>
@@ -106,43 +105,27 @@ namespace Vindinium
             }
         }
 
-        internal GameState(string json)
+        internal GameState(JObject gameResponse)
         {
 
-            var gameResponse = JsonConvert.DeserializeObject<IDictionary<string, object>>(json);
 
-            var playUrl = gameResponse["playUrl"] as string;
+            var playUrl = Util.JToken2T<string>(gameResponse, "playUrl");
             if (playUrl != null)
             {
                 PlayURL = new Uri(playUrl);
             }
-            var viewUrl = gameResponse["viewUrl"] as string;
+            var viewUrl = Util.JToken2T<string>(gameResponse, "viewUrl");
             if(viewUrl != null)
             {
                 this.ViewURL = new Uri(viewUrl);
             }
 
             this.MyHero = new Hero(gameResponse["hero"] as JObject);
-
             var game = (JObject) gameResponse["game"];
-
             this.Heroes = (game["heroes"] as JArray ?? new JArray()).Select(x => new Hero(x as JObject)).ToList();
-
-            var currentTurn = game["turn"];
-            if (currentTurn != null)
-            {
-                this.CurrentTurn = (int) currentTurn;
-            }
-            var maxTurns = game["maxTurns"];
-            if (maxTurns != null)
-            {
-                this.MaxTurns = (int) maxTurns;
-            }
-            var finished = game["finished"];
-            if (finished != null)
-            {
-                this.Finished = (bool) finished;
-            }
+            this.CurrentTurn = Util.JToken2NullableT<int>(game, "turn");
+            this.MaxTurns = Util.JToken2NullableT<int>(game, "maxTurns");
+            this.Finished = Util.JToken2NullableT<bool>(game, "finished");
             var board = game["board"] as JObject;
             var size = Util.JToken2NullableT<int>(board, "size");
             var tiles = Util.JToken2T<string>(board, "tiles");
