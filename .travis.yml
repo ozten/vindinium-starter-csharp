@@ -9,7 +9,7 @@ install:
   - chmod +x nuget.exe
   - sudo add-apt-repository -y ppa:directhex/monoxide
   - sudo apt-get update
-  - sudo apt-get install mono-devel mono-gmcs nunit-console monodoc-base gendarme
+  - sudo apt-get install mono-devel mono-gmcs nunit-console monodoc-base mono-tools
   - mozroots --import --sync
 
 script:
