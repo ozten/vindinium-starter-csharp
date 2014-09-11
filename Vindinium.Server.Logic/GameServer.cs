@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Vindinium.Common;
 using Vindinium.Common.DataStructures;
 
@@ -37,7 +38,7 @@ namespace Vindinium.Game.Logic
 			            		       		          				Pos = grid.PositionOf("@1"),
 			            		       		          				Life = 100,
 			            		       		          				Gold = 0,
-			            		       		          				MineCount = 0,
+			            		       		          				MineCount = Regex.Matches(mapText, @"\$1").Count,
 			            		       		          				SpawnPos = grid.PositionOf("@1"),
 			            		       		          				Crashed = false
 			            		       		          			},
@@ -50,7 +51,7 @@ namespace Vindinium.Game.Logic
 			            		       		          				Pos = grid.PositionOf("@2"),
 			            		       		          				Life = 100,
 			            		       		          				Gold = 0,
-			            		       		          				MineCount = 0,
+			            		       		          				MineCount = Regex.Matches(mapText, @"\$2").Count,
 			            		       		          				SpawnPos = grid.PositionOf("@2"),
 			            		       		          				Crashed = false
 			            		       		          			},
@@ -63,7 +64,7 @@ namespace Vindinium.Game.Logic
 			            		       		          				Pos = grid.PositionOf("@3"),
 			            		       		          				Life = 100,
 			            		       		          				Gold = 0,
-			            		       		          				MineCount = 0,
+			            		       		          				MineCount = Regex.Matches(mapText, @"\$3").Count,
 			            		       		          				SpawnPos = grid.PositionOf("@3"),
 			            		       		          				Crashed = false
 			            		       		          			},
@@ -76,7 +77,7 @@ namespace Vindinium.Game.Logic
 			            		       		          				Pos = grid.PositionOf("@4"),
 			            		       		          				Life = 100,
 			            		       		          				Gold = 0,
-			            		       		          				MineCount = 0,
+			            		       		          				MineCount = Regex.Matches(mapText, @"\$4").Count,
 			            		       		          				SpawnPos = grid.PositionOf("@4"),
 			            		       		          				Crashed = false
 			            		       		          			}
@@ -126,17 +127,26 @@ namespace Vindinium.Game.Logic
 					map[targetPos] = playerToken;
 					map[playerPos] = targetToken;
 				}
-				else if (targetToken == "$-")
+				else if (targetToken.StartsWith("$"))
 				{
-					if (_response.Self.Life <= 20)
+					if (targetToken != "$1")
 					{
-						_response.Self.Life = 100;
-					}
-					else
-					{
-						_response.Self.Life -= 20;
-						_response.Self.MineCount++;
-						map[targetPos] = "$1";
+
+						if (_response.Self.Life <= 20)
+						{
+							_response.Self.Life = 100;
+						}
+						else
+						{
+							_response.Self.Life -= 20;
+							_response.Self.MineCount++;
+							if (targetToken != "$-")
+							{
+								int playerId = int.Parse(targetToken.Substring(1, 1));
+								_response.Game.Players.Where(p=>p.Id == playerId).AsParallel().ForAll(p=>p.MineCount--);
+							}
+							map[targetPos] = "$1";
+						}
 					}
 				}
 				_response.Game.Board.MapText = map.MapText;
