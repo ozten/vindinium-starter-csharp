@@ -103,7 +103,7 @@ namespace Vindinium.Game.Logic
 			return _response;
 		}
 
-		public GameResponse Play(string token, Direction north)
+		public GameResponse Play(string token, Direction direction)
 		{
 			var map = new Grid {MapText = _response.Game.Board.MapText};
 			lock (map.SynchronizationRoot)
@@ -115,8 +115,8 @@ namespace Vindinium.Game.Logic
 
 
 				Pos playerPos = _response.Self.Pos;
-				var northPos = new Pos {Y = -1};
-				Pos targetPos = playerPos + northPos;
+				Pos targetPos = playerPos + GetTargetOffset(direction);
+
 				if (targetPos.X < 1) targetPos.X = 1;
 				if (targetPos.Y < 1) targetPos.Y = 1;
 				string targetToken = map[targetPos.X, targetPos.Y];
@@ -128,15 +128,32 @@ namespace Vindinium.Game.Logic
 				}
 				else if (targetToken == "$-")
 				{
-					_response.Self.Life -= 20;
-
-					map[targetPos] = "$1";
+					if (_response.Self.Life <= 20)
+					{
+						_response.Self.Life = 100;
+					}
+					else
+					{
+						_response.Self.Life -= 20;
+						map[targetPos] = "$1";
+					}
 				}
 				_response.Game.Board.MapText = map.MapText;
 				_response.Game.Players[0].Life = _response.Self.Life;
 			}
 
 			return _response;
+		}
+
+		private Pos GetTargetOffset(Direction direction)
+		{
+			switch (direction)
+			{
+				case Direction.North:
+					return new Pos {Y = -1};
+				default:
+					return new Pos();
+			}
 		}
 
 
