@@ -27,6 +27,15 @@ namespace Vindinium.Game.Logic.Tests
 		}
 
 		[Test]
+		public void StepsOverGoldMine()
+		{
+			var server = new GameServer();
+			GameResponse response = server.Start("$-  @1  ");
+			response = server.Play(response.Token, Direction.North);
+			Assert.That(response.Game.Board.MapText, Is.EqualTo("$1  @1  "));
+		}
+
+		[Test]
 		public void StepsOverTree()
 		{
 			var server = new GameServer();

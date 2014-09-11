@@ -112,7 +112,7 @@ namespace Vindinium.Game.Logic
 				{
 					_response.Self.Life--;
 				}
-				_response.Game.Players[0].Life = _response.Self.Life;
+
 
 				Pos playerPos = _response.Self.Pos;
 				var northPos = new Pos {Y = -1};
@@ -120,13 +120,20 @@ namespace Vindinium.Game.Logic
 				if (targetPos.X < 1) targetPos.X = 1;
 				if (targetPos.Y < 1) targetPos.Y = 1;
 				string targetToken = map[targetPos.X, targetPos.Y];
-				if (targetToken != "##")
+				if (targetToken == "  ")
 				{
 					string playerToken = map[playerPos.X, playerPos.Y];
-					map[targetPos.X, targetPos.Y] = playerToken;
-					map[playerPos.X, playerPos.Y] = targetToken;
+					map[targetPos] = playerToken;
+					map[playerPos] = targetToken;
+				}
+				else if (targetToken == "$-")
+				{
+					_response.Self.Life -= 20;
+
+					map[targetPos] = "$1";
 				}
 				_response.Game.Board.MapText = map.MapText;
+				_response.Game.Players[0].Life = _response.Self.Life;
 			}
 
 			return _response;
