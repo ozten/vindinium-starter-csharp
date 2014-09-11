@@ -9,7 +9,7 @@ namespace Vindinium.Game.Logic.Tests
 	public class GameServerPlayNorthTests
 	{
 		[Test]
-		public void CanMoveToEmptyArea()
+		public void Steps()
 		{
 			var server = new GameServer();
 			GameResponse response = server.Start("  ##@1##");
@@ -18,7 +18,7 @@ namespace Vindinium.Game.Logic.Tests
 		}
 
 		[Test]
-		public void CanNotMoveOffMap()
+		public void StepsOutOfMap()
 		{
 			var server = new GameServer();
 			GameResponse response = server.Start("@1      ");
@@ -27,7 +27,7 @@ namespace Vindinium.Game.Logic.Tests
 		}
 
 		[Test]
-		public void CanNotMoveToWoods()
+		public void StepsOverTree()
 		{
 			var server = new GameServer();
 			GameResponse response = server.Start("##  @1  ");
@@ -36,7 +36,7 @@ namespace Vindinium.Game.Logic.Tests
 		}
 
 		[Test]
-		public void PlayerDoesNotDieFromThirst()
+		public void ThirstDoesNotKill()
 		{
 			var server = new GameServer();
 			GameResponse response = server.Start("  ##@1##");
@@ -47,7 +47,7 @@ namespace Vindinium.Game.Logic.Tests
 		}
 
 		[Test]
-		public void PlayerGetsThirsty()
+		public void ThirstIsApplied()
 		{
 			var server = new GameServer();
 			GameResponse response = server.Start("  ##@1##");
