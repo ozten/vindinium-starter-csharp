@@ -85,43 +85,15 @@ namespace Vindinium.Game.Logic
 				string targetToken = map[targetPos.X, targetPos.Y];
 				if (targetToken == "  ")
 				{
-					string playerToken = map[playerPos.X, playerPos.Y];
-					map[targetPos] = playerToken;
-					map[playerPos] = targetToken;
+					StepOntoPath(targetToken, targetPos, playerPos, map);
 				}
 				else if (targetToken == "[]")
 				{
-					if (_response.Self.Gold >= 2)
-					{
-						_response.Self.Life += 50;
-						_response.Game.Players.First(p => p.Id == _response.Self.Id).Gold
-							-= 2;
-						if (_response.Self.Life > 100)
-						{
-							_response.Self.Life = 100;
-						}
-					}
+					StepIntoTavern();
 				}
 				else if (targetToken.StartsWith("$"))
 				{
-					if (targetToken != "$1")
-					{
-						if (_response.Self.Life <= 20)
-						{
-							_response.Self.Life = 100;
-						}
-						else
-						{
-							_response.Self.Life -= 20;
-							_response.Self.MineCount++;
-							if (targetToken != "$-")
-							{
-								int playerId = int.Parse(targetToken.Substring(1, 1));
-								_response.Game.Players.Where(p => p.Id == playerId).AsParallel().ForAll(p => p.MineCount--);
-							}
-							map[targetPos] = "$1";
-						}
-					}
+					StepIntoMine(map, targetPos, targetToken);
 				}
 
 				_response.Game.Players.AsParallel().ForAll(p => p.Gold += p.MineCount);
@@ -132,6 +104,49 @@ namespace Vindinium.Game.Logic
 			}
 
 			return _response;
+		}
+
+		private static void StepOntoPath(string targetToken, Pos targetPos, Pos playerPos, Grid map)
+		{
+			string playerToken = map[playerPos];
+			map[targetPos] = playerToken;
+			map[playerPos] = targetToken;
+		}
+
+		private void StepIntoMine(Grid map, Pos targetPos, string targetToken)
+		{
+			if (targetToken != "$1")
+			{
+				if (_response.Self.Life <= 20)
+				{
+					_response.Self.Life = 100;
+				}
+				else
+				{
+					_response.Self.Life -= 20;
+					_response.Self.MineCount++;
+					if (targetToken != "$-")
+					{
+						int playerId = int.Parse(targetToken.Substring(1, 1));
+						_response.Game.Players.Where(p => p.Id == playerId).AsParallel().ForAll(p => p.MineCount--);
+					}
+					map[targetPos] = "$1";
+				}
+			}
+		}
+
+		private void StepIntoTavern()
+		{
+			if (_response.Self.Gold >= 2)
+			{
+				_response.Self.Life += 50;
+				_response.Game.Players.First(p => p.Id == _response.Self.Id).Gold
+					-= 2;
+				if (_response.Self.Life > 100)
+				{
+					_response.Self.Life = 100;
+				}
+			}
 		}
 
 		private Pos GetTargetOffset(Direction direction)
