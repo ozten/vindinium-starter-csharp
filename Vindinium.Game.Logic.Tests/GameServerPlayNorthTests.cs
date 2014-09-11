@@ -63,6 +63,52 @@ namespace Vindinium.Game.Logic.Tests
 		}
 
 		[Test]
+		public void StepsIntoTavern()
+		{
+			var server = new GameServer();
+			GameResponse response = server.Start("[]$1@1  ");
+			for (int i = 0; i < 51; i++)
+			{
+				response = server.Play(response.Token, Direction.Stay);
+			}
+			int life = response.Self.Life;
+
+			Assert.That(response.Self.Life, Is.LessThan(50));
+			int gold = response.Self.Gold;
+			response = server.Play(response.Token, Direction.North);
+			Assert.That(response.Game.Board.MapText, Is.EqualTo("[]$1@1  "));
+			Assert.That(response.Self.Gold, Is.EqualTo((gold + response.Self.MineCount) - 2));
+			Assert.That(response.Self.Life, Is.EqualTo((life + 50) - 1));
+		}
+
+		[Test]
+		public void StepsIntoTavernOverdrinking()
+		{
+			var server = new GameServer();
+			GameResponse response = server.Start("[]$1@1  ");
+			response = server.Play(response.Token, Direction.Stay);
+			response = server.Play(response.Token, Direction.Stay);
+
+			int gold = response.Self.Gold;
+
+			response = server.Play(response.Token, Direction.North);
+			Assert.That(response.Self.Life, Is.EqualTo(100));
+			Assert.That(response.Self.Gold, Is.EqualTo((gold + response.Self.MineCount) - 2));
+		}
+
+		[Test]
+		public void StepsIntoTavernWithoutPayment()
+		{
+			var server = new GameServer();
+			GameResponse response = server.Start("[]  @1  ");
+			response = server.Play(response.Token, Direction.Stay);
+			response = server.Play(response.Token, Direction.North);
+
+			Assert.That(response.Self.Life, Is.EqualTo(98));
+			Assert.That(response.Self.Gold, Is.EqualTo(0));
+		}
+
+		[Test]
 		public void StepsOutOfMap()
 		{
 			var server = new GameServer();

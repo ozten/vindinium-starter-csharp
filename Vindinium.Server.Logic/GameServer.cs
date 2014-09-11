@@ -89,6 +89,19 @@ namespace Vindinium.Game.Logic
 					map[targetPos] = playerToken;
 					map[playerPos] = targetToken;
 				}
+				else if (targetToken == "[]")
+				{
+					if (_response.Self.Gold >= 2)
+					{
+						_response.Self.Life += 50;
+						_response.Game.Players.First(p => p.Id == _response.Self.Id).Gold
+							-= 2;
+						if (_response.Self.Life > 100)
+						{
+							_response.Self.Life = 100;
+						}
+					}
+				}
 				else if (targetToken.StartsWith("$"))
 				{
 					if (targetToken != "$1")
@@ -110,9 +123,12 @@ namespace Vindinium.Game.Logic
 						}
 					}
 				}
+
+				_response.Game.Players.AsParallel().ForAll(p => p.Gold += p.MineCount);
 				_response.Game.Board.MapText = map.MapText;
 				_response.Game.Players[0].Life = _response.Self.Life;
 				_response.Game.Players[0].MineCount = _response.Self.MineCount;
+				_response.Self.Gold = _response.Game.Players.First(p => p.Id == _response.Self.Id).Gold;
 			}
 
 			return _response;
