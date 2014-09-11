@@ -2,6 +2,7 @@ language: c
 
 env:
   - EnableNuGetPackageRestore=true
+  - MONO_VERSION=3.2.8
  
 install:
   - wget http://nuget.org/nuget.exe
