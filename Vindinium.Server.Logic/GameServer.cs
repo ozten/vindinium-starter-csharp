@@ -29,79 +29,41 @@ namespace Vindinium.Game.Logic
 			            		       		MaxTurns = 20,
 			            		       		Players = new List<Hero>
 			            		       		          	{
-			            		       		          		new Hero
-			            		       		          			{
-			            		       		          				Id = 1,
-			            		       		          				Name = "GrimTrick",
-			            		       		          				UserId = "8aq2nq2b",
-			            		       		          				Elo = 1213,
-			            		       		          				Pos = grid.PositionOf("@1"),
-			            		       		          				Life = 100,
-			            		       		          				Gold = 0,
-			            		       		          				MineCount = Regex.Matches(mapText, @"\$1").Count,
-			            		       		          				SpawnPos = grid.PositionOf("@1"),
-			            		       		          				Crashed = false
-			            		       		          			},
-			            		       		          		new Hero
-			            		       		          			{
-			            		       		          				Id = 2,
-			            		       		          				Name = "random",
-			            		       		          				UserId = null,
-			            		       		          				Elo = 1200,
-			            		       		          				Pos = grid.PositionOf("@2"),
-			            		       		          				Life = 100,
-			            		       		          				Gold = 0,
-			            		       		          				MineCount = Regex.Matches(mapText, @"\$2").Count,
-			            		       		          				SpawnPos = grid.PositionOf("@2"),
-			            		       		          				Crashed = false
-			            		       		          			},
-			            		       		          		new Hero
-			            		       		          			{
-			            		       		          				Id = 3,
-			            		       		          				Name = "random",
-			            		       		          				UserId = null,
-			            		       		          				Elo = 1200,
-			            		       		          				Pos = grid.PositionOf("@3"),
-			            		       		          				Life = 100,
-			            		       		          				Gold = 0,
-			            		       		          				MineCount = Regex.Matches(mapText, @"\$3").Count,
-			            		       		          				SpawnPos = grid.PositionOf("@3"),
-			            		       		          				Crashed = false
-			            		       		          			},
-			            		       		          		new Hero
-			            		       		          			{
-			            		       		          				Id = 4,
-			            		       		          				Name = "random",
-			            		       		          				UserId = null,
-			            		       		          				Elo = 1200,
-			            		       		          				Pos = grid.PositionOf("@4"),
-			            		       		          				Life = 100,
-			            		       		          				Gold = 0,
-			            		       		          				MineCount = Regex.Matches(mapText, @"\$4").Count,
-			            		       		          				SpawnPos = grid.PositionOf("@4"),
-			            		       		          				Crashed = false
-			            		       		          			}
+			            		       		          		CreateHero(mapText, grid, 1),
+			            		       		          		CreateHero(mapText, grid, 2),
+			            		       		          		CreateHero(mapText, grid, 3),
+			            		       		          		CreateHero(mapText, grid, 4)
 			            		       		          	},
 			            		       		Turn = 0
 			            		       	},
 			            		PlayUrl = "http://vindinium.org/api/the-game-id/the-token/play",
-			            		Self = new Hero
-			            		       	{
-			            		       		Id = 1,
-			            		       		Name = "GrimTrick",
-			            		       		UserId = "8aq2nq2b",
-			            		       		Elo = 1213,
-			            		       		Pos = grid.PositionOf("@1"),
-			            		       		Life = 100,
-			            		       		Gold = 0,
-			            		       		MineCount = 0,
-			            		       		SpawnPos = grid.PositionOf("@1"),
-			            		       		Crashed = false
-			            		       	},
+			            		Self = CreateHero(mapText, grid, 1),
 			            		Token = "the-token",
 			            		ViewUrl = "http://vindinium.org/the-game-id"
 			            	};
 			return _response;
+		}
+
+		private static Hero CreateHero(string mapText, Grid grid, int playerId)
+		{
+			string heroToken = string.Format("@{0}", playerId);
+			string mineToken = string.Format("${0}", playerId);
+			Pos position = grid.PositionOf(heroToken);
+			int mineCount = Regex.Matches(mapText, Regex.Escape(mineToken)).Count;
+
+			return new Hero
+			       	{
+			       		Id = playerId,
+			       		Name = playerId == 1 ? "GrimTrick" : "random",
+			       		UserId = playerId == 1 ? "8aq2nq2b" : null,
+			       		Elo = 1213,
+			       		Pos = position,
+			       		Life = 100,
+			       		Gold = 0,
+			       		MineCount = mineCount,
+			       		SpawnPos = position,
+			       		Crashed = false
+			       	};
 		}
 
 		public GameResponse Play(string token, Direction direction)
@@ -131,7 +93,6 @@ namespace Vindinium.Game.Logic
 				{
 					if (targetToken != "$1")
 					{
-
 						if (_response.Self.Life <= 20)
 						{
 							_response.Self.Life = 100;
@@ -143,7 +104,7 @@ namespace Vindinium.Game.Logic
 							if (targetToken != "$-")
 							{
 								int playerId = int.Parse(targetToken.Substring(1, 1));
-								_response.Game.Players.Where(p=>p.Id == playerId).AsParallel().ForAll(p=>p.MineCount--);
+								_response.Game.Players.Where(p => p.Id == playerId).AsParallel().ForAll(p => p.MineCount--);
 							}
 							map[targetPos] = "$1";
 						}

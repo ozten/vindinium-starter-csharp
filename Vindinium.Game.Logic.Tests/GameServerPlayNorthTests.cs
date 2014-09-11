@@ -18,16 +18,7 @@ namespace Vindinium.Game.Logic.Tests
 		}
 
 		[Test]
-		public void StepsOutOfMap()
-		{
-			var server = new GameServer();
-			GameResponse response = server.Start("@1      ");
-			response = server.Play(response.Token, Direction.North);
-			Assert.That(response.Game.Board.MapText, Is.EqualTo("@1      "));
-		}
-
-		[Test]
-		public void StepsOverGoldMine()
+		public void StepsIntoGoldMine()
 		{
 			var server = new GameServer();
 			GameResponse response = server.Start("$-  @1  ");
@@ -37,7 +28,7 @@ namespace Vindinium.Game.Logic.Tests
 		}
 
 		[Test]
-		public void StepsOverGoldMineAndDies()
+		public void StepsIntoGoldMineAndDies()
 		{
 			var server = new GameServer();
 			GameResponse response = server.Start("$-  @1  ");
@@ -49,19 +40,18 @@ namespace Vindinium.Game.Logic.Tests
 		}
 
 		[Test]
-		public void StepsOverGoldMineOwned()
+		public void StepsIntoGoldMineBelongsToSelf()
 		{
 			var server = new GameServer();
-			GameResponse response = server.Start("$-  @1  ");
-			server.Play(response.Token, Direction.North);
+			GameResponse response = server.Start("$1  @1  ");
 			response = server.Play(response.Token, Direction.North);
 			Assert.That(response.Game.Board.MapText, Is.EqualTo("$1  @1  "));
 			Assert.That(response.Self.MineCount, Is.EqualTo(1));
-			Assert.That(response.Self.Life, Is.EqualTo(78));
+			Assert.That(response.Self.Life, Is.EqualTo(99));
 		}
 
 		[Test]
-		public void StepsOverGoldMineOfEnemy()
+		public void StepsIntoGoldMineOfEnemy()
 		{
 			var server = new GameServer();
 			GameResponse response = server.Start("$4@4@1  ");
@@ -70,6 +60,15 @@ namespace Vindinium.Game.Logic.Tests
 			Assert.That(response.Self.MineCount, Is.EqualTo(1));
 			Assert.That(response.Self.Life, Is.EqualTo(79));
 			Assert.That(response.Game.Players[3].MineCount, Is.EqualTo(0));
+		}
+
+		[Test]
+		public void StepsOutOfMap()
+		{
+			var server = new GameServer();
+			GameResponse response = server.Start("@1      ");
+			response = server.Play(response.Token, Direction.North);
+			Assert.That(response.Game.Board.MapText, Is.EqualTo("@1      "));
 		}
 
 		[Test]
