@@ -6,7 +6,7 @@ using Vindinium.Common.DataStructures;
 namespace Vindinium.Game.Logic.Tests
 {
 	[TestFixture]
-	public class GameServerPlayNorthTests
+	public class GameServerPlayTests
 	{
 		#region Setup/Teardown
 

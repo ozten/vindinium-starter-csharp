@@ -39,7 +39,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GameServerStartArenaTests.cs" />
-    <Compile Include="GameServerPlayNorthTests.cs" />
+    <Compile Include="GameServerPlayTests.cs" />
     <Compile Include="GameServerStartTrainingTests.cs" />
     <Compile Include="GridTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
