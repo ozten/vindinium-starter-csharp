@@ -51,14 +51,14 @@ namespace Vindinium
         {
             if (bot != null)
             {
-                _logger.Info("Running [" + bot.Name + "]");
+                Console.WriteLine("Running [" + bot.Name + "]");
 
                 // TODO destructive assignation to method-local variable gameState
                 var gameState = this.CreateGame();
 
                 while (gameState.Errored)
                 {
-                    _logger.Error(gameState.ErrorText);
+                    Console.WriteLine(gameState.ErrorText);
                     Thread.Sleep(1000);
                     gameState = this.CreateGame();
                 }
@@ -70,19 +70,19 @@ namespace Vindinium
                     }
                 }).Start();
 
-                while (!(gameState.Finished == false))
+                while (gameState.Finished == false)
                 {
                     gameState = this.MoveHero(bot.Move(gameState).ToString(), gameState.PlayURL);
-                    _logger.Info("completed turn [" + gameState.CurrentTurn.ToString() + "]");
+                    Console.WriteLine("completed turn [" + gameState.CurrentTurn.ToString() + "]");
                     if (gameState.Errored)
                     {
-                        _logger.Error(gameState.ErrorText);
+                        Console.WriteLine(gameState.ErrorText);
                         Thread.Sleep(1000);
                     }
                     }
 
 
-                _logger.Info("[" + bot.Name + "] finished");
+                Console.WriteLine("[" + bot.Name + "] finished");
             }
         }
 
@@ -124,8 +124,8 @@ namespace Vindinium
                 }
                 catch (WebException exception)
                 {
-                    _logger.Error("Failed to contact ["+uri+"]");
-                    _logger.Error("WebException ["+exception+"]", exception);
+                    Console.WriteLine("Failed to contact ["+uri+"]");
+                    Console.WriteLine("WebException ["+exception+"]", exception);
 
                     return new GameState(exception);
                 }
