@@ -78,22 +78,13 @@ namespace Vindinium.Game.Logic
 
 
 				Pos playerPos = _response.Self.Pos;
+				string playerToken = map[playerPos];
 				Pos targetPos = playerPos + GetTargetOffset(direction);
 				KeepPositionOnMap(targetPos, _response.Game.Board.Size);
-
 				string targetToken = map[targetPos];
-				if (targetToken == "  ")
-				{
-					StepOntoPath(targetToken, targetPos, playerPos, map);
-				}
-				else if (targetToken == "[]")
-				{
-					StepIntoTavern();
-				}
-				else if (targetToken.StartsWith("$"))
-				{
-					StepIntoMine(map, targetPos, targetToken);
-				}
+
+				PlayerMoving(playerPos, map, targetToken, targetPos);
+				PlayerMoved(direction, targetToken, playerToken);
 
 				_response.Game.Players.AsParallel().ForAll(p => p.Gold += p.MineCount);
 				_response.Game.Board.MapText = map.MapText;
@@ -105,6 +96,31 @@ namespace Vindinium.Game.Logic
 
 
 			return _response.ToJson();
+		}
+
+		private void PlayerMoved(Direction direction, string targetToken, string playerToken)
+		{
+			if (targetToken.StartsWith("@") && direction != Direction.Stay && targetToken != playerToken)
+			{
+				int enemyId = int.Parse(targetToken.Substring(1));
+				_response.Game.Players.Where(p => p.Id == enemyId).AsParallel().ForAll(p => p.Life -= 20);
+			}
+		}
+
+		private void PlayerMoving(Pos playerPos, Grid map, string targetToken, Pos targetPos)
+		{
+			if (targetToken == "  ")
+			{
+				StepOntoPath(targetToken, targetPos, playerPos, map);
+			}
+			else if (targetToken == "[]")
+			{
+				StepIntoTavern();
+			}
+			else if (targetToken.StartsWith("$"))
+			{
+				StepIntoMine(map, targetPos, targetToken);
+			}
 		}
 
 		private static void KeepPositionOnMap(Pos position, int mapSize)

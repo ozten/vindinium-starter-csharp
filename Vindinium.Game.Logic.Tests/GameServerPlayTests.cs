@@ -86,6 +86,16 @@ namespace Vindinium.Game.Logic.Tests
 		}
 
 		[Test]
+		public void StepsIntoPlayer()
+		{
+			GameResponse response = Start("@2  @1  ");
+			response = Play(response.Token, Direction.North);
+			Assert.That(response.Game.Board.MapText, Is.EqualTo("@2  @1  "));
+			Assert.That(response.Game.Players.Where(p => p.Id == 2), Has.All.Property("Life").EqualTo(80));
+			Assert.That(response.Self.Life, Is.EqualTo(99));
+		}
+
+		[Test]
 		public void StepsIntoTavern()
 		{
 			GameResponse response = Start("[]$1@1  ");
