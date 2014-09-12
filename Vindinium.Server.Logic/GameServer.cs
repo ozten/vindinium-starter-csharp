@@ -8,6 +8,11 @@ namespace Vindinium.Game.Logic
 {
 	public class GameServer
 	{
+		private const string Tavern = "[]";
+		private const string MinePrefix = "$";
+		private const string UnclaimedMine = "$-";
+		private const string OpenPath = "  ";
+		private const string PlayerPrefix = "@";
 		private GameResponse _response = new GameResponse();
 
 		public string Start()
@@ -46,8 +51,8 @@ namespace Vindinium.Game.Logic
 
 		private static Hero CreateHero(string mapText, Grid grid, int playerId)
 		{
-			string heroToken = string.Format("@{0}", playerId);
-			string mineToken = string.Format("${0}", playerId);
+			string heroToken = string.Format("{0}{1}", PlayerPrefix, playerId);
+			string mineToken = string.Format("{0}{1}", MinePrefix, playerId);
 			Pos position = grid.PositionOf(heroToken);
 			int mineCount = Regex.Matches(mapText, Regex.Escape(mineToken)).Count;
 
@@ -100,7 +105,7 @@ namespace Vindinium.Game.Logic
 
 		private void PlayerMoved(Direction direction, string targetToken, string playerToken)
 		{
-			if (targetToken.StartsWith("@") && direction != Direction.Stay && targetToken != playerToken)
+			if (targetToken.StartsWith(PlayerPrefix) && direction != Direction.Stay && targetToken != playerToken)
 			{
 				int enemyId = int.Parse(targetToken.Substring(1));
 				_response.Game.Players.Where(p => p.Id == enemyId).AsParallel().ForAll(p => p.Life -= 20);
@@ -109,15 +114,15 @@ namespace Vindinium.Game.Logic
 
 		private void PlayerMoving(Pos playerPos, Grid map, string targetToken, Pos targetPos)
 		{
-			if (targetToken == "  ")
+			if (targetToken == OpenPath)
 			{
 				StepOntoPath(targetToken, targetPos, playerPos, map);
 			}
-			else if (targetToken == "[]")
+			else if (targetToken == Tavern)
 			{
 				StepIntoTavern();
 			}
-			else if (targetToken.StartsWith("$"))
+			else if (targetToken.StartsWith(MinePrefix))
 			{
 				StepIntoMine(map, targetPos, targetToken);
 			}
@@ -136,13 +141,14 @@ namespace Vindinium.Game.Logic
 			string playerToken = map[playerPos];
 			map[targetPos] = playerToken;
 			map[playerPos] = targetToken;
-			_response.Game.Players.Where(p => string.Format("@{0}", p.Id) == playerToken).AsParallel().ForAll(
+			_response.Game.Players.Where(p => string.Format("{0}{1}", PlayerPrefix, p.Id) == playerToken).AsParallel().ForAll(
 				p => p.Pos = targetPos);
 		}
 
 		private void StepIntoMine(Grid map, Pos targetPos, string targetToken)
 		{
-			if (targetToken != "$1")
+			string playerMine = string.Format("{0}{1}", MinePrefix, _response.Self.Id);
+			if (targetToken != playerMine)
 			{
 				if (_response.Self.Life <= 20)
 				{
@@ -152,12 +158,12 @@ namespace Vindinium.Game.Logic
 				{
 					_response.Self.Life -= 20;
 					_response.Self.MineCount++;
-					if (targetToken != "$-")
+					if (targetToken != UnclaimedMine)
 					{
 						int playerId = int.Parse(targetToken.Substring(1, 1));
 						_response.Game.Players.Where(p => p.Id == playerId).AsParallel().ForAll(p => p.MineCount--);
 					}
-					map[targetPos] = "$1";
+					map[targetPos] = playerMine;
 				}
 			}
 		}
