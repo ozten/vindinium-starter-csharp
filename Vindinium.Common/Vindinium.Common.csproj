@@ -34,6 +34,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataStructures\Board.cs" />
@@ -44,12 +45,12 @@
     <Compile Include="Direction.cs" />
     <Compile Include="Entities\IApiRequest.cs" />
     <Compile Include="EnvironmentType.cs" />
+    <Compile Include="JsonHelper.cs" />
     <Compile Include="LogLevel.cs" />
     <Compile Include="Services\IApiCaller.cs" />
     <Compile Include="Entities\IApiResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\IApiEndpointBuilder.cs" />
-    <Compile Include="Services\IJsonDeserializer.cs" />
     <Compile Include="Services\ILogger.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

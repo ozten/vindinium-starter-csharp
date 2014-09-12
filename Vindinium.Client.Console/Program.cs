@@ -43,7 +43,7 @@ namespace Vindinium.Client.Console
 			Logger.Debug("Challenge Accepted");
 
 			var apiEndpoints = new ApiEndpointBuilder(parameters.ApiUri, parameters.ApiKey);
-			var gameManager = new GameManager(new ApiCaller(Logger), apiEndpoints, new JsonDeserializer());
+			var gameManager = new GameManager(new ApiCaller(Logger), apiEndpoints);
 			gameManager.GotResponse += SaveResponseForTesting;
 			var bot = new RandomBot();
 

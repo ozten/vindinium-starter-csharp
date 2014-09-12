@@ -11,17 +11,15 @@ namespace Vindinium.Client.Logic
 	{
 		private readonly IApiCaller _apiCaller;
 		private readonly IApiEndpointBuilder _apiEndpointBuilder;
-		private readonly IJsonDeserializer _jsonDeserializer;
 		public EventHandler<GameEventArgs> GotResponse;
 
 		private Uri _playUrl;
 		private bool isArena;
 
-		public GameManager(IApiCaller apiCaller, IApiEndpointBuilder apiEndpointBuilder, IJsonDeserializer jsonDeserializer)
+		public GameManager(IApiCaller apiCaller, IApiEndpointBuilder apiEndpointBuilder)
 		{
 			_apiCaller = apiCaller;
 			_apiEndpointBuilder = apiEndpointBuilder;
-			_jsonDeserializer = jsonDeserializer;
 		}
 
 		public string ViewUrl { get; private set; }
@@ -75,7 +73,7 @@ namespace Vindinium.Client.Logic
 			}
 			else
 			{
-				var gameResponse = _jsonDeserializer.Deserialize<GameResponse>(response.Text);
+				var gameResponse = response.Text.JsonToObject<GameResponse>();
 				var args = new GameEventArgs
 				           	{
 				           		Json = response.Text,

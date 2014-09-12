@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using Vindinium.Common;
 using Vindinium.Common.DataStructures;
 
 namespace Vindinium.Game.Logic.Tests
@@ -13,7 +14,7 @@ namespace Vindinium.Game.Logic.Tests
 		public void RunBeforeFirstTest()
 		{
 			var server = new GameServer();
-			_gameResponse = server.Start();
+			_gameResponse = server.Start().JsonToObject<GameResponse>();
 			_game = _gameResponse.Game;
 
 			Console.WriteLine(_game.Board);

@@ -12,7 +12,7 @@ namespace Vindinium.Game.Logic.Tests
 		public void RunBeforeFirstTest()
 		{
 			var server = new GameServer();
-			_gameResponse = server.Start(EnvironmentType.Arena);
+			_gameResponse = server.Start(EnvironmentType.Arena).JsonToObject<GameResponse>();
 			_game = _gameResponse.Game;
 
 			Console.WriteLine(_game.Board);

@@ -10,13 +10,13 @@ namespace Vindinium.Game.Logic
 	{
 		private GameResponse _response = new GameResponse();
 
-		public GameResponse Start()
+		public string Start()
 		{
 			return Start(
 				"        [][]        ##                ##$-  @1$-####$-@4  $-##  ##        ##  ##                                        ##  ##        ##  ##$-  @2$-####$-@3  $-##                ##        [][]        ");
 		}
 
-		public GameResponse Start(string mapText)
+		public string Start(string mapText)
 		{
 			var grid = new Grid {MapText = mapText};
 			_response = new GameResponse
@@ -41,7 +41,7 @@ namespace Vindinium.Game.Logic
 			            		Token = "the-token",
 			            		ViewUrl = "http://vindinium.org/the-game-id"
 			            	};
-			return _response;
+			return _response.ToJson();
 		}
 
 		private static Hero CreateHero(string mapText, Grid grid, int playerId)
@@ -66,7 +66,7 @@ namespace Vindinium.Game.Logic
 			       	};
 		}
 
-		public GameResponse Play(string token, Direction direction)
+		public string Play(string token, Direction direction)
 		{
 			var map = new Grid {MapText = _response.Game.Board.MapText};
 			lock (map.SynchronizationRoot)
@@ -103,7 +103,8 @@ namespace Vindinium.Game.Logic
 				_response.Self.Gold = _response.Game.Players.First(p => p.Id == _response.Self.Id).Gold;
 			}
 
-			return _response;
+
+			return _response.ToJson();
 		}
 
 		private static void StepOntoPath(string targetToken, Pos targetPos, Pos playerPos, Grid map)
@@ -161,14 +162,14 @@ namespace Vindinium.Game.Logic
 		}
 
 
-		public GameResponse Start(EnvironmentType environmentType)
+		public string Start(EnvironmentType environmentType)
 		{
-			_response = Start();
+			Start();
 			if (environmentType == EnvironmentType.Training)
 			{
 				_response.Game.Players.Where(p => p.Id != _response.Self.Id).ToList().ForEach(p => p.Elo = null);
 			}
-			return _response;
+			return _response.ToJson();
 		}
 	}
 }
