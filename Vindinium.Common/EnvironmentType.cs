@@ -1,8 +1,8 @@
 namespace Vindinium.Common
 {
-	public enum EnvironmentType
-	{
-		Arena,
-		Training
-	}
+    public enum EnvironmentType
+    {
+        Arena,
+        Training
+    }
 }

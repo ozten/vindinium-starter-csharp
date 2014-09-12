@@ -9,17 +9,13 @@ namespace Vindinium.Client.Logic
 {
     public class ApiCaller : IApiCaller
     {
-        private readonly ILogger _logger;
-
-        public ApiCaller(ILogger logger)
-        {
-            _logger = logger;
-        }
+        private static readonly ILogger Logger = new Logger();
 
         #region IApiCaller Members
 
         public IApiResponse Call(IApiRequest apiRequest)
         {
+            Logger.Trace("Call");
             try
             {
                 HttpWebRequest request = CreateApiClient(apiRequest);
@@ -39,15 +35,21 @@ namespace Vindinium.Client.Logic
 
         #endregion
 
-        private IApiResponse ResponseAsApiResponse(WebResponse response)
+        private static IApiResponse ResponseAsApiResponse(WebResponse response)
         {
-            _logger.Trace("ResponseAsApiResponse");
+            Logger.Trace("ResponseAsApiResponse");
+            return new ApiResponse(ReadResponseStream(response));
+        }
+
+        private static string ReadResponseStream(WebResponse response)
+        {
+            Logger.Trace("ReadResponseStream");
             Stream stream = null;
             try
             {
                 stream = response.GetResponseStream();
 
-                if (stream == null) return new ApiResponse(null);
+                if (stream == null) return null;
 
                 using (var reader = new StreamReader(stream))
                 {
@@ -55,8 +57,36 @@ namespace Vindinium.Client.Logic
 
                     string serverResponseText = reader.ReadToEnd();
 
-                    _logger.Trace(serverResponseText);
-                    return new ApiResponse(serverResponseText);
+                    Logger.Trace(serverResponseText);
+                    return serverResponseText;
+                }
+            }
+            finally
+            {
+                if (stream != null)
+                {
+                    stream.Dispose();
+                }
+            }
+        }
+
+        private static void WriteRequestStream(WebRequest request, string text)
+        {
+            Logger.Trace("WriteRequestStream, {0}", text);
+            byte[] buffer = Encoding.UTF8.GetBytes(text);
+            request.ContentLength = buffer.Length;
+            Stream stream = null;
+            try
+            {
+                stream = request.GetRequestStream();
+
+                if (stream == null) return;
+
+                using (var writer = new StreamWriter(stream))
+                {
+                    stream = null;
+                    writer.Write(text);
+                    writer.Close();
                 }
             }
             finally
@@ -71,41 +101,24 @@ namespace Vindinium.Client.Logic
         private void LogResponseTime(DateTime startedTime)
         {
             TimeSpan diff = DateTime.Now.Subtract(startedTime);
-            _logger.Trace("LogResponseTime: {0,5} miliseconds", diff.TotalMilliseconds);
+            Logger.Trace("LogResponseTime: {0,5} miliseconds", diff.TotalMilliseconds);
         }
 
         private HttpWebRequest CreateApiClient(IApiRequest apiRequest)
         {
-            _logger.Trace("CreateApiClient {0} {1}", apiRequest.Uri, apiRequest.Parameters);
+            Logger.Trace("CreateApiClient {0} {1}", apiRequest.Uri, apiRequest.Parameters);
             var request = (HttpWebRequest) WebRequest.Create(apiRequest.Uri);
             request.KeepAlive = false;
             request.Method = "Post";
             request.ContentType = "application/x-www-form-urlencoded";
-            byte[] buffer = Encoding.UTF8.GetBytes(apiRequest.Parameters);
-
-            request.ContentLength = buffer.Length;
-            using (Stream reqStream = request.GetRequestStream())
-            {
-                reqStream.Write(buffer, 0, buffer.Length);
-                reqStream.Close();
-            }
+            WriteRequestStream(request, apiRequest.Parameters);
             return request;
         }
 
         private IApiResponse ExceptionAsApiResponse(WebException exception)
         {
-            _logger.Trace("ExceptionAsApiResponse - Status: {0}", exception.Status);
-            using (Stream responseStream = exception.Response.GetResponseStream())
-            {
-                if (responseStream != null)
-                {
-                    using (var reader = new StreamReader(responseStream))
-                    {
-                        return ApiResponse.GetError(reader.ReadToEnd());
-                    }
-                }
-            }
-            return ApiResponse.GetErrorWithoutMessage();
+            Logger.Trace("ExceptionAsApiResponse - Status: {0}", exception.Status);
+            return ApiResponse.GetError(ReadResponseStream(exception.Response));
         }
     }
 }
