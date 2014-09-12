@@ -79,14 +79,11 @@ namespace Vindinium.Client.Logic
             try
             {
                 stream = request.GetRequestStream();
-
                 if (stream == null) return;
-
                 using (var writer = new StreamWriter(stream))
                 {
                     stream = null;
                     writer.Write(text);
-                    writer.Close();
                 }
             }
             finally
