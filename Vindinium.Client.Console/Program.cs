@@ -5,12 +5,11 @@ using System.Linq;
 using Vindinium.Client.Logic;
 using Vindinium.Common;
 using Vindinium.Common.DataStructures;
-using Vindinium.Common.Entities;
 using Vindinium.Common.Services;
 
 namespace Vindinium.Client.Console
 {
-    internal class Program
+    internal static class Program
     {
         private static readonly Logger Logger = new Logger();
 
@@ -45,22 +44,21 @@ namespace Vindinium.Client.Console
             Logger.Debug("Challenge Accepted");
             var apiCaller = new ApiCaller();
             var apiEndpoints = new ApiEndpointBuilder(parameters.ApiUri, parameters.ApiKey);
-            var server = new GameServerPoxy(apiCaller, apiEndpoints);
+            IGameServerProxy server = new GameServerProxy(apiCaller, apiEndpoints);
             var bot = new RandomBot();
 
-            IApiResponse response = StartGameEnvironment(server, parameters);
-            var game = response.Text.JsonToObject<GameResponse>();
+            StartGameEnvironment(server, parameters);
 
-            Logger.Debug("View URL: {0}", game.ViewUrl);
+            Logger.Debug("View URL: {0}", server.GameResponse.ViewUrl);
 
-            IApiResponse lastResponse = PlayGame(bot, server, game.Game.Id, game.Token, parameters);
-            if (lastResponse.HasError)
+            PlayGame(bot, server, server.GameResponse.Game.Id, server.GameResponse.Token, parameters);
+            if (server.ApiResponse.HasError)
             {
-                Logger.Error(lastResponse.ErrorMessage);
+                Logger.Error(server.ApiResponse.ErrorMessage);
             }
             else
             {
-                LogEndGameResults(lastResponse.Text.JsonToObject<GameResponse>());
+                LogEndGameResults(server.GameResponse);
             }
         }
 
@@ -78,26 +76,22 @@ namespace Vindinium.Client.Console
             File.WriteAllText(path, response.ToJson());
         }
 
-        private static IApiResponse PlayGame(RandomBot bot, IGameServerPoxy server, string gameId, string token,
+        private static void PlayGame(RandomBot bot, IGameServerProxy server, string gameId, string token,
             Parameters parameters)
         {
-            IApiResponse response;
-            GameResponse gameResponse;
             do
             {
-                response = server.Play(gameId, token, bot.DetermineNextMove());
+                server.Play(gameId, token, bot.DetermineNextMove());
 
-                if (response.HasError)
+                if (server.ApiResponse.HasError)
                 {
-                    Logger.Error(response.ErrorMessage);
-                    return response;
+                    Logger.Error(server.ApiResponse.ErrorMessage);
+                    return;
                 }
 
-                gameResponse = response.Text.JsonToObject<GameResponse>();
-                SaveResponseForTesting(gameResponse, parameters.Environment == EnvironmentType.Arena);
-            } while (response.HasError == false && gameResponse.Game.Finished == false &&
-                     gameResponse.Self.Crashed == false);
-            return response;
+                SaveResponseForTesting(server.GameResponse, parameters.Environment == EnvironmentType.Arena);
+            } while (server.ApiResponse.HasError == false && server.GameResponse.Game.Finished == false &&
+                     server.GameResponse.Self.Crashed == false);
         }
 
         private static void LogEndGameResults(GameResponse gameResponse)
@@ -124,13 +118,16 @@ namespace Vindinium.Client.Console
             }
         }
 
-        private static IApiResponse StartGameEnvironment(GameServerPoxy server, Parameters parameters)
+        private static void StartGameEnvironment(IGameServerProxy server, Parameters parameters)
         {
             if (parameters.Environment == EnvironmentType.Arena)
             {
-                return server.StartArena(parameters.ApiKey);
+                server.StartArena();
             }
-            return server.StartTraining(parameters.ApiKey, parameters.Turns);
+            else
+            {
+                server.StartTraining(parameters.Turns);
+            }
         }
 
         private static Parameters GetParameters(string[] args)

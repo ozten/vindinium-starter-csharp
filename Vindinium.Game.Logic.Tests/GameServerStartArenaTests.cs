@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using Vindinium.Common;
 using Vindinium.Common.DataStructures;
+using Vindinium.Common.Services;
 
 namespace Vindinium.Game.Logic.Tests
 {
@@ -11,8 +12,8 @@ namespace Vindinium.Game.Logic.Tests
         [TestFixtureSetUp]
         public void RunBeforeFirstTest()
         {
-            var server = new GameServer();
-            _gameResponse = server.Start(EnvironmentType.Arena).JsonToObject<GameResponse>();
+            IGameServerProxy server = new GameServer();
+            _gameResponse = server.StartArena().JsonToObject<GameResponse>();
             _game = _gameResponse.Game;
 
             Console.WriteLine(_game.Board);

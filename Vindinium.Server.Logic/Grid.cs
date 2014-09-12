@@ -67,7 +67,7 @@ namespace Vindinium.Game.Logic
                     return _grid[x - 1, y - 1];
                 }
             }
-            set
+            private set
             {
                 lock (SynchronizationRoot)
                 {

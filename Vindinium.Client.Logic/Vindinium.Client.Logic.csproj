@@ -75,11 +75,10 @@
     <Compile Include="ApiEndpointBuilder.cs" />
     <Compile Include="ApiCaller.cs" />
     <Compile Include="ApiResponse.cs" />
-    <Compile Include="GameEventArgs.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RandomBot.cs" />
-    <Compile Include="GameServerPoxy.cs" />
+    <Compile Include="GameServerProxy.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Vindinium.Common\Vindinium.Common.csproj">

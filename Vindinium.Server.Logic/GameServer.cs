@@ -3,11 +3,12 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Vindinium.Common;
 using Vindinium.Common.DataStructures;
+using Vindinium.Common.Entities;
 using Vindinium.Common.Services;
 
 namespace Vindinium.Game.Logic
 {
-    public class GameServer : IGameServerPoxy
+    public class GameServer : IGameServerProxy
     {
         private const string Tavern = "[]";
         private const string MinePrefix = "$";
@@ -16,60 +17,15 @@ namespace Vindinium.Game.Logic
         private const string PlayerPrefix = "@";
         private GameResponse _response = new GameResponse();
 
-        public string Start()
+
+        public GameResponse GameResponse
         {
-            return Start(
-                "        [][]        ##                ##$-  @1$-####$-@4  $-##  ##        ##  ##                                        ##  ##        ##  ##$-  @2$-####$-@3  $-##                ##        [][]        ");
+            get { return null; }
         }
 
-        public string Start(string mapText)
+        public IApiResponse ApiResponse
         {
-            var grid = new Grid {MapText = mapText};
-            _response = new GameResponse
-            {
-                Game = new Common.DataStructures.Game
-                {
-                    Board = new Board {MapText = grid.MapText, Size = grid.Size},
-                    Finished = false,
-                    Id = "the-game-id",
-                    MaxTurns = 20,
-                    Players = new List<Hero>
-                    {
-                        CreateHero(mapText, grid, 1),
-                        CreateHero(mapText, grid, 2),
-                        CreateHero(mapText, grid, 3),
-                        CreateHero(mapText, grid, 4)
-                    },
-                    Turn = 0
-                },
-                PlayUrl = "http://vindinium.org/api/the-game-id/the-token/play",
-                Self = CreateHero(mapText, grid, 1),
-                Token = "the-token",
-                ViewUrl = "http://vindinium.org/the-game-id"
-            };
-            return _response.ToJson();
-        }
-
-        private static Hero CreateHero(string mapText, Grid grid, int playerId)
-        {
-            string heroToken = string.Format("{0}{1}", PlayerPrefix, playerId);
-            string mineToken = string.Format("{0}{1}", MinePrefix, playerId);
-            Pos position = grid.PositionOf(heroToken);
-            int mineCount = Regex.Matches(mapText, Regex.Escape(mineToken)).Count;
-
-            return new Hero
-            {
-                Id = playerId,
-                Name = playerId == 1 ? "GrimTrick" : "random",
-                UserId = playerId == 1 ? "8aq2nq2b" : null,
-                Elo = 1213,
-                Pos = position,
-                Life = 100,
-                Gold = 0,
-                MineCount = mineCount,
-                SpawnPos = position,
-                Crashed = false
-            };
+            get { return null; }
         }
 
         public string Play(string gameId, string token, Direction direction)
@@ -102,6 +58,81 @@ namespace Vindinium.Game.Logic
 
 
             return _response.ToJson();
+        }
+
+        public string StartTraining(uint turns)
+        {
+            return Start(EnvironmentType.Training);
+        }
+
+        public string StartArena()
+        {
+            return Start(EnvironmentType.Arena);
+        }
+
+        public string Start(string mapText)
+        {
+            var grid = new Grid {MapText = mapText};
+            _response = new GameResponse
+            {
+                Game = new Common.DataStructures.Game
+                {
+                    Board = new Board {MapText = grid.MapText, Size = grid.Size},
+                    Finished = false,
+                    Id = "the-game-id",
+                    MaxTurns = 20,
+                    Players = new List<Hero>
+                    {
+                        CreateHero(mapText, grid, 1),
+                        CreateHero(mapText, grid, 2),
+                        CreateHero(mapText, grid, 3),
+                        CreateHero(mapText, grid, 4)
+                    },
+                    Turn = 0
+                },
+                PlayUrl = "http://vindinium.org/api/the-game-id/the-token/play",
+                Self = CreateHero(mapText, grid, 1),
+                Token = "the-token",
+                ViewUrl = "http://vindinium.org/the-game-id"
+            };
+            return _response.ToJson();
+        }
+
+        private void Start()
+        {
+            Start(string.Format("{0}{1}{2}{3}{4}{5}{6}{7}{8}{9}",
+                "        [][]        ",
+                "##                ##",
+                "$-  @1$-####$-@4  $-",
+                "##  ##        ##  ##",
+                "                    ",
+                "                    ",
+                "##  ##        ##  ##",
+                "$-  @2$-####$-@3  $-",
+                "##                ##",
+                "        [][]        "));
+        }
+
+        private static Hero CreateHero(string mapText, Grid grid, int playerId)
+        {
+            string heroToken = string.Format("{0}{1}", PlayerPrefix, playerId);
+            string mineToken = string.Format("{0}{1}", MinePrefix, playerId);
+            Pos position = grid.PositionOf(heroToken);
+            int mineCount = Regex.Matches(mapText, Regex.Escape(mineToken)).Count;
+
+            return new Hero
+            {
+                Id = playerId,
+                Name = playerId == 1 ? "GrimTrick" : "random",
+                UserId = playerId == 1 ? "8aq2nq2b" : null,
+                Elo = 1213,
+                Pos = position,
+                Life = 100,
+                Gold = 0,
+                MineCount = mineCount,
+                SpawnPos = position,
+                Crashed = false
+            };
         }
 
         private void PlayerMoved(Direction direction, string targetToken, string playerToken)
@@ -203,7 +234,7 @@ namespace Vindinium.Game.Logic
         }
 
 
-        public string Start(EnvironmentType environmentType)
+        private string Start(EnvironmentType environmentType)
         {
             Start();
             if (environmentType == EnvironmentType.Training)
@@ -211,16 +242,6 @@ namespace Vindinium.Game.Logic
                 _response.Game.Players.Where(p => p.Id != _response.Self.Id).ToList().ForEach(p => p.Elo = null);
             }
             return _response.ToJson();
-        }
-
-        public string StartTraining(string userId, uint turns)
-        {
-            return Start(EnvironmentType.Training);
-        }
-
-        public string StartArena(string userId)
-        {
-            return Start(EnvironmentType.Arena);
         }
     }
 }

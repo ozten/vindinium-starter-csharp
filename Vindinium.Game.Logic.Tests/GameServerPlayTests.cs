@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using Vindinium.Common;
 using Vindinium.Common.DataStructures;
+using Vindinium.Common.Services;
 
 namespace Vindinium.Game.Logic.Tests
 {
@@ -14,7 +15,7 @@ namespace Vindinium.Game.Logic.Tests
             _server = new GameServer();
         }
 
-        private GameServer _server;
+        private IGameServerProxy _server;
 
         private GameResponse Start(string mapText)
         {
