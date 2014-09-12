@@ -8,6 +8,7 @@ namespace Vindinium.Client.Logic
     public class ApiEndpointBuilder : IApiEndpointBuilder
     {
         private readonly string _apiKey;
+        private readonly Uri _apiUri;
         private readonly Uri _startArenaUri;
         private readonly Uri _startTrainingUri;
 
@@ -16,6 +17,7 @@ namespace Vindinium.Client.Logic
             _apiKey = apiKey;
             _startArenaUri = new Uri(apiUri, "/api/arena");
             _startTrainingUri = new Uri(apiUri, "/api/training");
+            _apiUri = apiUri;
         }
 
         #region IApiEndpointBuilder Members
@@ -38,11 +40,11 @@ namespace Vindinium.Client.Logic
             };
         }
 
-        public IApiRequest Play(Uri playUrl, Direction direction)
+        public IApiRequest Play(string gameId, string token, Direction direction)
         {
             return new ApiRequest
             {
-                Uri = playUrl,
+                Uri = new Uri(_apiUri, string.Format("/api/{0}/{1}/play", gameId, token)),
                 Parameters = string.Format("key={0}&dir={1}", _apiKey, direction)
             };
         }

@@ -1,4 +1,5 @@
 using System;
+using Vindinium.Common;
 
 namespace Vindinium.Client.Console
 {
@@ -6,7 +7,7 @@ namespace Vindinium.Client.Console
     {
         public string ApiKey;
         public Uri ApiUri;
-        public string Environment;
+        public EnvironmentType Environment;
         public uint NumberOfGames;
         public uint Turns;
     }

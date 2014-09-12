@@ -5,6 +5,8 @@ using System.Linq;
 using Vindinium.Client.Logic;
 using Vindinium.Common;
 using Vindinium.Common.DataStructures;
+using Vindinium.Common.Entities;
+using Vindinium.Common.Services;
 
 namespace Vindinium.Client.Console
 {
@@ -41,62 +43,73 @@ namespace Vindinium.Client.Console
         private static void AcceptChallenge(Parameters parameters)
         {
             Logger.Debug("Challenge Accepted");
-
+            var apiCaller = new ApiCaller();
             var apiEndpoints = new ApiEndpointBuilder(parameters.ApiUri, parameters.ApiKey);
-            var gameManager = new GameManager(new ApiCaller(), apiEndpoints);
-            gameManager.GotResponse += SaveResponseForTesting;
+            var server = new GameServerPoxy(apiCaller, apiEndpoints);
             var bot = new RandomBot();
 
-            StartGameEnvironment(gameManager, parameters);
+            IApiResponse response = StartGameEnvironment(server, parameters);
+            var game = response.Text.JsonToObject<GameResponse>();
 
-            Logger.Debug("View URL: {0}", gameManager.ViewUrl);
+            Logger.Debug("View URL: {0}", game.ViewUrl);
 
-            PlayGame(bot, gameManager);
-            if (gameManager.GameHasError)
+            IApiResponse lastResponse = PlayGame(bot, server, game.Game.Id, game.Token, parameters);
+            if (lastResponse.HasError)
             {
-                Logger.Error(gameManager.GameErrorMessage);
+                Logger.Error(lastResponse.ErrorMessage);
+            }
+            else
+            {
+                LogEndGameResults(lastResponse.Text.JsonToObject<GameResponse>());
             }
         }
 
-        private static void SaveResponseForTesting(object sender, GameEventArgs gameEventArgs)
+        private static void SaveResponseForTesting(GameResponse response, bool isArena)
         {
             string path = @"\vindinium.logs\";
             if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-            path = Path.Combine(path, gameEventArgs.IsArena ? "arena" : "training");
+            path = Path.Combine(path, isArena ? "arena" : "training");
             if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-            path = Path.Combine(path, string.Format("{0:000}", gameEventArgs.Game.Board.Size));
+            path = Path.Combine(path, string.Format("{0:000}", response.Game.Board.Size));
             if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-            path = Path.Combine(path, gameEventArgs.Game.Id);
+            path = Path.Combine(path, response.Game.Id);
             if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-            path = Path.Combine(path, string.Format("{0:0000}.json", gameEventArgs.Game.Turn));
-            File.WriteAllText(path, gameEventArgs.Json);
+            path = Path.Combine(path, string.Format("{0:0000}.json", response.Game.Turn));
+            File.WriteAllText(path, response.ToJson());
         }
 
-        private static void PlayGame(RandomBot bot, GameManager gameManager)
+        private static IApiResponse PlayGame(RandomBot bot, IGameServerPoxy server, string gameId, string token,
+            Parameters parameters)
         {
-            while (gameManager.Finished == false && gameManager.GameHasError == false)
+            IApiResponse response;
+            GameResponse gameResponse;
+            do
             {
-                Logger.Info("Life: {0}", gameManager.MyHero.Life);
+                response = server.Play(gameId, token, bot.DetermineNextMove());
 
-                Direction nextMove = bot.DetermineNextMove();
-                gameManager.MoveHero(nextMove);
-            }
-            if (!gameManager.GameHasError)
-            {
-                LogEndGameResults(gameManager);
-            }
+                if (response.HasError)
+                {
+                    Logger.Error(response.ErrorMessage);
+                    return response;
+                }
+
+                gameResponse = response.Text.JsonToObject<GameResponse>();
+                SaveResponseForTesting(gameResponse, parameters.Environment == EnvironmentType.Arena);
+            } while (response.HasError == false && gameResponse.Game.Finished == false &&
+                     gameResponse.Self.Crashed == false);
+            return response;
         }
 
-        private static void LogEndGameResults(GameManager gameManager)
+        private static void LogEndGameResults(GameResponse gameResponse)
         {
-            List<Hero> heroes = gameManager.Heroes;
+            List<Hero> heroes = gameResponse.Game.Players;
             int maxGold = heroes.Max(h => h.Gold);
             Hero[] topHeroes = heroes.Where(h => h.Gold == maxGold).ToArray();
             int count = topHeroes.Count();
             if (count == 1)
             {
                 Hero winner = topHeroes.First();
-                if (winner == gameManager.MyHero)
+                if (winner == gameResponse.Self)
                 {
                     Logger.Info("Game Won");
                 }
@@ -111,16 +124,13 @@ namespace Vindinium.Client.Console
             }
         }
 
-        private static void StartGameEnvironment(GameManager gameManager, Parameters parameters)
+        private static IApiResponse StartGameEnvironment(GameServerPoxy server, Parameters parameters)
         {
-            if (parameters.Environment == "arena")
+            if (parameters.Environment == EnvironmentType.Arena)
             {
-                gameManager.StartArena();
+                return server.StartArena(parameters.ApiKey);
             }
-            else
-            {
-                gameManager.StartTraining(parameters.Turns);
-            }
+            return server.StartTraining(parameters.ApiKey, parameters.Turns);
         }
 
         private static Parameters GetParameters(string[] args)
@@ -130,7 +140,7 @@ namespace Vindinium.Client.Console
             var parameters = new Parameters
             {
                 ApiKey = lines[0],
-                Environment = lines[1],
+                Environment = (EnvironmentType) Enum.Parse(typeof (EnvironmentType), lines[1], true),
                 Turns = uint.Parse(lines[2]),
                 ApiUri = new Uri(lines[3], UriKind.Absolute),
                 NumberOfGames = uint.Parse(lines[4])

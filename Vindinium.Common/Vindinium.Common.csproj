@@ -51,6 +51,7 @@
     <Compile Include="Entities\IApiResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\IApiEndpointBuilder.cs" />
+    <Compile Include="Services\IGameServerPoxy.cs" />
     <Compile Include="Services\ILogger.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
