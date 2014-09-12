@@ -79,10 +79,9 @@ namespace Vindinium.Game.Logic
 
 				Pos playerPos = _response.Self.Pos;
 				Pos targetPos = playerPos + GetTargetOffset(direction);
+				KeepPositionOnMap(targetPos, _response.Game.Board.Size);
 
-				if (targetPos.X < 1) targetPos.X = 1;
-				if (targetPos.Y < 1) targetPos.Y = 1;
-				string targetToken = map[targetPos.X, targetPos.Y];
+				string targetToken = map[targetPos];
 				if (targetToken == "  ")
 				{
 					StepOntoPath(targetToken, targetPos, playerPos, map);
@@ -101,17 +100,28 @@ namespace Vindinium.Game.Logic
 				_response.Game.Players[0].Life = _response.Self.Life;
 				_response.Game.Players[0].MineCount = _response.Self.MineCount;
 				_response.Self.Gold = _response.Game.Players.First(p => p.Id == _response.Self.Id).Gold;
+				_response.Self.Pos = _response.Game.Players.First(p => p.Id == _response.Self.Id).Pos;
 			}
 
 
 			return _response.ToJson();
 		}
 
-		private static void StepOntoPath(string targetToken, Pos targetPos, Pos playerPos, Grid map)
+		private static void KeepPositionOnMap(Pos position, int mapSize)
+		{
+			if (position.X < 1) position.X = 1;
+			if (position.Y < 1) position.Y = 1;
+			if (position.X > mapSize) position.X = mapSize;
+			if (position.Y > mapSize) position.Y = mapSize;
+		}
+
+		private void StepOntoPath(string targetToken, Pos targetPos, Pos playerPos, Grid map)
 		{
 			string playerToken = map[playerPos];
 			map[targetPos] = playerToken;
 			map[playerPos] = targetToken;
+			_response.Game.Players.Where(p => string.Format("@{0}", p.Id) == playerToken).AsParallel().ForAll(
+				p => p.Pos = targetPos);
 		}
 
 		private void StepIntoMine(Grid map, Pos targetPos, string targetToken)
@@ -156,6 +166,12 @@ namespace Vindinium.Game.Logic
 			{
 				case Direction.North:
 					return new Pos {Y = -1};
+				case Direction.South:
+					return new Pos {Y = 1};
+				case Direction.West:
+					return new Pos {X = -1};
+				case Direction.East:
+					return new Pos {X = 1};
 				default:
 					return new Pos();
 			}

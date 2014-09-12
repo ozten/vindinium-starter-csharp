@@ -30,6 +30,12 @@ namespace Vindinium.Game.Logic.Tests
 			return _server.Play(token, direction).JsonToObject<GameResponse>();
 		}
 
+		private void AssertPlayHasMapText(string token, Direction direction, string mapText)
+		{
+			var response = _server.Play(token, direction).JsonToObject<GameResponse>();
+			Assert.That(response.Game.Board.MapText, Is.EqualTo(mapText));
+		}
+
 		[Test]
 		public void Steps()
 		{
@@ -126,8 +132,17 @@ namespace Vindinium.Game.Logic.Tests
 		public void StepsOutOfMap()
 		{
 			GameResponse response = Start("@1      ");
-			response = Play(response.Token, Direction.North);
-			Assert.That(response.Game.Board.MapText, Is.EqualTo("@1      "));
+			string token = response.Token;
+
+			AssertPlayHasMapText(token, Direction.North, "@1      ");
+			AssertPlayHasMapText(token, Direction.East, "  @1    ");
+			AssertPlayHasMapText(token, Direction.East, "  @1    ");
+			AssertPlayHasMapText(token, Direction.South, "      @1");
+			AssertPlayHasMapText(token, Direction.South, "      @1");
+			AssertPlayHasMapText(token, Direction.West, "    @1  ");
+			AssertPlayHasMapText(token, Direction.West, "    @1  ");
+			AssertPlayHasMapText(token, Direction.North, "@1      ");
+			AssertPlayHasMapText(token, Direction.North, "@1      ");
 		}
 
 		[Test]
