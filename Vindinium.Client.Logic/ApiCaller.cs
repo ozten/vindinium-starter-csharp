@@ -7,93 +7,105 @@ using Vindinium.Common.Services;
 
 namespace Vindinium.Client.Logic
 {
-	public class ApiCaller : IApiCaller
-	{
-		private readonly ILogger _logger;
+    public class ApiCaller : IApiCaller
+    {
+        private readonly ILogger _logger;
 
-		public ApiCaller(ILogger logger)
-		{
-			_logger = logger;
-		}
+        public ApiCaller(ILogger logger)
+        {
+            _logger = logger;
+        }
 
-		#region IApiCaller Members
+        #region IApiCaller Members
 
-		public IApiResponse Call(IApiRequest apiRequest)
-		{
-			try
-			{
-				HttpWebRequest request = CreateApiClient(apiRequest);
+        public IApiResponse Call(IApiRequest apiRequest)
+        {
+            try
+            {
+                HttpWebRequest request = CreateApiClient(apiRequest);
 
-				DateTime started = DateTime.Now;
-				using (WebResponse response = request.GetResponse())
-				{
-					LogResponseTime(started);
-					return ResponseAsApiResponse(response);
-				}
-			}
-			catch (WebException exception)
-			{
-				return ExceptionAsApiResponse(exception);
-			}
-		}
+                DateTime started = DateTime.Now;
+                using (WebResponse response = request.GetResponse())
+                {
+                    LogResponseTime(started);
+                    return ResponseAsApiResponse(response);
+                }
+            }
+            catch (WebException exception)
+            {
+                return ExceptionAsApiResponse(exception);
+            }
+        }
 
-		#endregion
+        #endregion
 
-		private IApiResponse ResponseAsApiResponse(WebResponse response)
-		{
-			_logger.Trace("ResponseAsApiResponse");
-			using (Stream stream = response.GetResponseStream())
-			{
-				if (stream == null) return new ApiResponse(null);
+        private IApiResponse ResponseAsApiResponse(WebResponse response)
+        {
+            _logger.Trace("ResponseAsApiResponse");
+            Stream stream = null;
+            try
+            {
+                stream = response.GetResponseStream();
 
-				using (var reader = new StreamReader(stream))
-				{
-					string serverResponseText = reader.ReadToEnd();
+                if (stream == null) return new ApiResponse(null);
 
-					_logger.Trace(serverResponseText);
-					return new ApiResponse(serverResponseText);
-				}
-			}
-		}
+                using (var reader = new StreamReader(stream))
+                {
+                    stream = null;
 
-		private void LogResponseTime(DateTime startedTime)
-		{
-			TimeSpan diff = DateTime.Now.Subtract(startedTime);
-			_logger.Trace("LogResponseTime: {0,5} miliseconds", diff.TotalMilliseconds);
-		}
+                    string serverResponseText = reader.ReadToEnd();
 
-		private HttpWebRequest CreateApiClient(IApiRequest apiRequest)
-		{
-			_logger.Trace("CreateApiClient {0} {1}", apiRequest.Uri, apiRequest.Parameters);
-			var request = (HttpWebRequest) WebRequest.Create(apiRequest.Uri);
-			request.KeepAlive = false;
-			request.Method = "Post";
-			request.ContentType = "application/x-www-form-urlencoded";
-			byte[] buffer = Encoding.UTF8.GetBytes(apiRequest.Parameters);
+                    _logger.Trace(serverResponseText);
+                    return new ApiResponse(serverResponseText);
+                }
+            }
+            finally
+            {
+                if (stream != null)
+                {
+                    stream.Dispose();
+                }
+            }
+        }
 
-			request.ContentLength = buffer.Length;
-			using (Stream reqStream = request.GetRequestStream())
-			{
-				reqStream.Write(buffer, 0, buffer.Length);
-				reqStream.Close();
-			}
-			return request;
-		}
+        private void LogResponseTime(DateTime startedTime)
+        {
+            TimeSpan diff = DateTime.Now.Subtract(startedTime);
+            _logger.Trace("LogResponseTime: {0,5} miliseconds", diff.TotalMilliseconds);
+        }
 
-		private IApiResponse ExceptionAsApiResponse(WebException exception)
-		{
-			_logger.Trace("ExceptionAsApiResponse - Status: {0}", exception.Status);
-			using (Stream responseStream = exception.Response.GetResponseStream())
-			{
-				if (responseStream != null)
-				{
-					using (var reader = new StreamReader(responseStream))
-					{
-						return ApiResponse.GetError(reader.ReadToEnd());
-					}
-				}
-			}
-			return ApiResponse.GetErrorWithoutMessage();
-		}
-	}
+        private HttpWebRequest CreateApiClient(IApiRequest apiRequest)
+        {
+            _logger.Trace("CreateApiClient {0} {1}", apiRequest.Uri, apiRequest.Parameters);
+            var request = (HttpWebRequest) WebRequest.Create(apiRequest.Uri);
+            request.KeepAlive = false;
+            request.Method = "Post";
+            request.ContentType = "application/x-www-form-urlencoded";
+            byte[] buffer = Encoding.UTF8.GetBytes(apiRequest.Parameters);
+
+            request.ContentLength = buffer.Length;
+            using (Stream reqStream = request.GetRequestStream())
+            {
+                reqStream.Write(buffer, 0, buffer.Length);
+                reqStream.Close();
+            }
+            return request;
+        }
+
+        private IApiResponse ExceptionAsApiResponse(WebException exception)
+        {
+            _logger.Trace("ExceptionAsApiResponse - Status: {0}", exception.Status);
+            using (Stream responseStream = exception.Response.GetResponseStream())
+            {
+                if (responseStream != null)
+                {
+                    using (var reader = new StreamReader(responseStream))
+                    {
+                        return ApiResponse.GetError(reader.ReadToEnd());
+                    }
+                }
+            }
+            return ApiResponse.GetErrorWithoutMessage();
+        }
+    }
 }
