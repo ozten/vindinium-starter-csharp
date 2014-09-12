@@ -3,10 +3,11 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Vindinium.Common;
 using Vindinium.Common.DataStructures;
+using Vindinium.Common.Services;
 
 namespace Vindinium.Game.Logic
 {
-    public class GameServer
+    public class GameServer : IGameServerPoxy
     {
         private const string Tavern = "[]";
         private const string MinePrefix = "$";
@@ -71,7 +72,7 @@ namespace Vindinium.Game.Logic
             };
         }
 
-        public string Play(string token, Direction direction)
+        public string Play(string gameId, string token, Direction direction)
         {
             var map = new Grid {MapText = _response.Game.Board.MapText};
             lock (map.SynchronizationRoot)
@@ -210,6 +211,16 @@ namespace Vindinium.Game.Logic
                 _response.Game.Players.Where(p => p.Id != _response.Self.Id).ToList().ForEach(p => p.Elo = null);
             }
             return _response.ToJson();
+        }
+
+        public string StartTraining(string userId, uint turns)
+        {
+            return Start(EnvironmentType.Training);
+        }
+
+        public string StartArena(string userId)
+        {
+            return Start(EnvironmentType.Arena);
         }
     }
 }

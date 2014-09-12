@@ -15,19 +15,19 @@ namespace Vindinium.Client.Logic
             _endpointBuilder = endpointBuilder;
         }
 
-        public IApiResponse StartTraining(string userId, uint turns)
+        public string StartTraining(string userId, uint turns)
         {
-            return _caller.Call(_endpointBuilder.StartTraining(turns));
+            return _caller.Call(_endpointBuilder.StartTraining(turns)).Text;
         }
 
-        public IApiResponse StartArena(string userId)
+        public string StartArena(string userId)
         {
-            return _caller.Call(_endpointBuilder.StartArena());
+            return _caller.Call(_endpointBuilder.StartArena()).Text;
         }
 
-        public IApiResponse Play(string gameId, string token, Direction direction)
+        public string Play(string gameId, string token, Direction direction)
         {
-            return _caller.Call(_endpointBuilder.Play(gameId, token, direction));
+            return _caller.Call(_endpointBuilder.Play(gameId, token, direction)).Text;
         }
     }
 }

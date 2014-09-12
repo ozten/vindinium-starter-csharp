@@ -23,12 +23,12 @@ namespace Vindinium.Game.Logic.Tests
 
         private GameResponse Play(string token, Direction direction)
         {
-            return _server.Play(token, direction).JsonToObject<GameResponse>();
+            return _server.Play("", token, direction).JsonToObject<GameResponse>();
         }
 
         private void AssertPlayHasMapText(string token, Direction direction, string mapText)
         {
-            var response = _server.Play(token, direction).JsonToObject<GameResponse>();
+            var response = _server.Play("", token, direction).JsonToObject<GameResponse>();
             Assert.That(response.Game.Board.MapText, Is.EqualTo(mapText));
         }
 
