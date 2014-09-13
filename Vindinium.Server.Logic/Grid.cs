@@ -96,5 +96,16 @@ namespace Vindinium.Game.Logic
                 return null;
             }
         }
+
+        internal void ForEach(Action<Pos> action)
+        {
+            for (int y = 0; y < _size; y++)
+            {
+                for (int x = 0; x < _size; x++)
+                {
+                    action(new Pos {X = x + 1, Y = y + 1});
+                }
+            }
+        }
     }
 }

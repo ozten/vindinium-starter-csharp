@@ -34,6 +34,21 @@ namespace Vindinium.Game.Logic.Tests
         }
 
         [Test]
+        public void KillEnemy()
+        {
+            GameResponse response = Start("@2$2@1$2");
+
+            for (int i = 0; i < 5; i++)
+                response = Play(response.Token, Direction.North);
+
+            Hero player2 = response.Game.Players.First(p => p.Id == 2);
+            Assert.That(player2.Life, Is.EqualTo(100));
+            Assert.That(player2.MineCount, Is.EqualTo(0));
+            Assert.That(response.Self.MineCount, Is.EqualTo(2));
+            Assert.That(response.Game.Board.MapText, Is.EqualTo("@2$1@1$1"));
+        }
+
+        [Test]
         public void Steps()
         {
             GameResponse response = Start("  ##@1##");
@@ -57,7 +72,7 @@ namespace Vindinium.Game.Logic.Tests
             for (int i = 0; i < 100; i++) Play(response.Token, Direction.Stay);
             response = Play(response.Token, Direction.North);
             Assert.That(response.Game.Board.MapText, Is.EqualTo("$-  @1  "));
-            Assert.That(response.Game.Players[0].Life, Is.EqualTo(100));
+            Assert.That(response.Game.Players[0].Life, Is.EqualTo(99));
             Assert.That(response.Self.MineCount, Is.EqualTo(0));
         }
 
@@ -83,7 +98,7 @@ namespace Vindinium.Game.Logic.Tests
         }
 
         [Test]
-        public void StepsIntoPlayer()
+        public void StepsIntoPlayerAndDamages()
         {
             GameResponse response = Start("@2  @1  ");
             response = Play(response.Token, Direction.North);
@@ -120,7 +135,7 @@ namespace Vindinium.Game.Logic.Tests
             int gold = response.Self.Gold;
 
             response = Play(response.Token, Direction.North);
-            Assert.That(response.Self.Life, Is.EqualTo(100));
+            Assert.That(response.Self.Life, Is.EqualTo(99));
             Assert.That(response.Self.Gold, Is.EqualTo((gold + response.Self.MineCount) - 2));
         }
 
