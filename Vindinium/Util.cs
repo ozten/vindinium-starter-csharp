@@ -4,6 +4,33 @@ using Newtonsoft.Json.Linq;
 
 namespace Vindinium
 {
+    // TODO a direction enum so we don't have to care about the default value of T and U
+    internal sealed class Either<T, U>  where T : class where U : class {
+        internal T Left { get; private set; }
+        internal U Right { get; private set; }
+        internal Either(T t)
+        {
+            this.Left = t;
+        }
+
+        internal Either(U u)
+        {
+            this.Right = u;
+        }
+
+        internal object GetValue()
+        {
+            if (this.Left == null)
+            {
+                return this.Right;
+            }
+            else
+            {
+                return this.Left;
+            }
+        }
+    }
+
     internal static class Util
     {
 
@@ -30,13 +57,11 @@ namespace Vindinium
             }
             else
             {
-                return null;
+                throw new ArgumentNullException("No dictionary specified", "inp");
             }
-
-
         }
 
-        internal static T JToken2T<T>(IDictionary<string, JToken> inp, string key) where T : class
+        internal static T JToken2T<T>(IDictionary<string, JToken> inp, string key)
         {
             if (inp != null)
             {
@@ -45,7 +70,7 @@ namespace Vindinium
                     var outp = inp[key];
                     if (outp == null)
                     {
-                        return null;
+                        throw new ArgumentException("Key ["+key+"] null in message ["+inp+"]", "key");
                     }
                     else
                     {
@@ -54,14 +79,15 @@ namespace Vindinium
                 }
                 else
                 {
-                    return null;
+                    throw new ArgumentException("Key ["+key+"] absent from message ["+inp+"]", "key");
                 }
             }
             else
             {
-                return null;
+                throw new ArgumentNullException("No dictionary specified", "inp");
             }
         }
+
     }
 }
 

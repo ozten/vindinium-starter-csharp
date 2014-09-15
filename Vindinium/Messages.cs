@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Net;
-using System.IO;
-using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
 namespace Vindinium
 {
+
     /// <summary>
     /// The current game state.
     /// </summary>
@@ -21,14 +18,14 @@ namespace Vindinium
         /// </summary>
         /// <remarks>Presently the x- and y-heights are always the same.</remarks>
         /// <value>The x-height.</value>
-        public int? X { get; private set; }
+        public int X { get; private set; }
 
         /// <summary>
         /// Gets the y-height of the board.
         /// </summary>
         /// <remarks>Presently the x- and y-heights are always the same.</remarks>
         /// <value>The y-height.</value>
-        public int? Y { get; private set; }
+        public int Y { get; private set; }
 
         /// <summary>
         /// Represents the user's own hero.
@@ -46,32 +43,25 @@ namespace Vindinium
         /// Gets the number of the current turn.
         /// </summary>
         /// <value>The current turn.</value>
-        public int? CurrentTurn { get; private set; }
+        public int CurrentTurn { get; private set; }
 
         /// <summary>
         /// Gets the total number of turns.
         /// </summary>
         /// <value>The max turns.</value>
-        public int? MaxTurns { get; private set; }
+        public int MaxTurns { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether the game is finished.
         /// </summary>
         /// <value><c>true</c> if finished; otherwise, <c>false</c>.</value>
-        public bool? Finished { get; private set; }
-
+        public bool Finished { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether we failed to connect to the server or not.
         /// </summary>
         /// <value><c>true</c> if errored; otherwise, <c>false</c>.</value>
         public bool Errored { get; private set; }
-
-        /// <summary>
-        /// Gets the text of the error, if any.
-        /// </summary>
-        /// <value>The error text.</value>
-        public string ErrorText { get; private set; }
 
         /// <summary>
         /// Gets the tile with x and y coordinates specified.
@@ -89,21 +79,7 @@ namespace Vindinium
 
         internal Uri PlayURL { get; private set; }
 
-        internal GameState(WebException exception)
-        {
-            this.Errored = true;
-            if (exception.Response != null)
-            {
-                using (var reader = new StreamReader(exception.Response.GetResponseStream()))
-                {
-                    this.ErrorText = reader.ReadToEnd();
-                }
-            }
-            else
-            {
-                this.ErrorText = "The server is down";
-            }
-        }
+
 
         internal GameState(JObject gameResponse)
         {
@@ -123,31 +99,28 @@ namespace Vindinium
             this.MyHero = new Hero(gameResponse["hero"] as JObject);
             var game = (JObject) gameResponse["game"];
             this.Heroes = (game["heroes"] as JArray ?? new JArray()).Select(x => new Hero(x as JObject)).ToList();
-            this.CurrentTurn = Util.JToken2NullableT<int>(game, "turn");
-            this.MaxTurns = Util.JToken2NullableT<int>(game, "maxTurns");
-            this.Finished = Util.JToken2NullableT<bool>(game, "finished");
+            this.CurrentTurn = Util.JToken2T<int>(game, "turn");
+            this.MaxTurns = Util.JToken2T<int>(game, "maxTurns");
+            this.Finished = Util.JToken2T<bool>(game, "finished");
             var board = game["board"] as JObject;
-            var size = Util.JToken2NullableT<int>(board, "size");
+            var size = Util.JToken2T<int>(board, "size");
             var tiles = Util.JToken2T<string>(board, "tiles");
             this.CreateBoard(size, tiles);
         }
 
 
-        private void CreateBoard(int? size, string data)
+        private void CreateBoard(int size, string data)
         {
 
-            if (size != null)
+            //check to see if the board list is already created, if it is, we just overwrite its values
+            if (_jaggedTiles == null || _jaggedTiles.Length != size)
             {
-                //check to see if the board list is already created, if it is, we just overwrite its values
-                if (_jaggedTiles == null || _jaggedTiles.Length != size)
-                {
-                    _jaggedTiles = new Tile[(int)size][];
+                _jaggedTiles = new Tile[(int)size][];
 
-                    //need to initialize the lists within the list
-                    for (int i = 0; i < size; i++)
-                    {
-                        _jaggedTiles[i] = new Tile[(int)size];
-                    }
+                //need to initialize the lists within the list
+                for (int i = 0; i < size; i++)
+                {
+                    _jaggedTiles[i] = new Tile[(int)size];
                 }
             }
 
@@ -314,7 +287,7 @@ namespace Vindinium
         /// Gets the x-coordinate.
         /// </summary>
         /// <value>The x.</value>
-        public int? X
+        public int X
         {
             get;
             private set;
@@ -324,18 +297,18 @@ namespace Vindinium
         /// Gets the y-coordinate.
         /// </summary>
         /// <value>The y.</value>
-        public int? Y
+        public int Y
         {
             get;
             private set;
         }
 
         /// <param name="p">P.</param>
-        public static implicit operator Tuple<int?,int?>(Pos p)
+        public static implicit operator Tuple<int,int>(Pos p)
         {
             if (p != null)
             {
-                return new Tuple<int?, int?>(p.X, p.Y);
+                return new Tuple<int, int>(p.X, p.Y);
             }
             else
             {
@@ -345,8 +318,8 @@ namespace Vindinium
 
 
         internal Pos(IDictionary<string, JToken> inp) {
-            this.X = Util.JToken2NullableT<int>(inp, "x");
-            this.Y = Util.JToken2NullableT<int>(inp, "y");
+            this.X = Util.JToken2T<int>(inp, "x");
+            this.Y = Util.JToken2T<int>(inp, "y");
         }
 
 
@@ -358,12 +331,12 @@ namespace Vindinium
     public sealed class Hero
     {
         internal Hero(IDictionary<string, JToken> inp) {
-            this.Crashed = Util.JToken2NullableT<bool>(inp, "crashed");
+            this.Crashed = Util.JToken2T<bool>(inp, "crashed");
             this.Elo = Util.JToken2NullableT<int>(inp, "elo");
-            this.Gold = Util.JToken2NullableT<int>(inp, "gold");
-            this.Id = Util.JToken2NullableT<int>(inp, "id");
-            this.Life = Util.JToken2NullableT<int>(inp, "life");
-            this.MineCount = Util.JToken2NullableT<int>(inp, "mineCount");
+            this.Gold = Util.JToken2T<int>(inp, "gold");
+            this.Id = Util.JToken2T<int>(inp, "id");
+            this.Life = Util.JToken2T<int>(inp, "life");
+            this.MineCount = Util.JToken2T<int>(inp, "mineCount");
             this.Name = Util.JToken2T<string>(inp, "name");
             this.Pos = new Pos(inp["pos"] as JObject);
             this.SpawnPos = new Pos(inp["spawnPos"] as JObject);
@@ -373,7 +346,7 @@ namespace Vindinium
         /// Gets the identifier of the hero.
         /// </summary>
         /// <value>The identifier.</value>
-        public int? Id
+        public int Id
         {
             get; private set;
         }
@@ -391,6 +364,7 @@ namespace Vindinium
         /// Gets the elo rating of the hero.
         /// </summary>
         /// <value>The elo.</value>
+        /// <remarks>Is absent sometimes. (On the first run?)</remarks>
         public int? Elo
         {
             get; private set;
@@ -409,7 +383,7 @@ namespace Vindinium
         /// Gets the life remaining of the hero.
         /// </summary>
         /// <value>The life.</value>
-        public int? Life
+        public int Life
         {
             get; private set;
         }
@@ -418,7 +392,7 @@ namespace Vindinium
         /// Gets the gold of the hero.
         /// </summary>
         /// <value>The gold.</value>
-        public int? Gold
+        public int Gold
         {
             get; private set;
         }
@@ -427,7 +401,7 @@ namespace Vindinium
         /// Gets the number of mines the hero has.
         /// </summary>
         /// <value>The mine count.</value>
-        public int? MineCount
+        public int MineCount
         {
             get; private set;
         }
@@ -445,10 +419,11 @@ namespace Vindinium
         /// Gets whether the hero has crashed or not.
         /// </summary>
         /// <value>The crashed.</value>
-        public bool? Crashed
+        public bool Crashed
         {
             get; private set;
         }
 
     }
+
 }

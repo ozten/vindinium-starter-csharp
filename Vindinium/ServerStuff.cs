@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Runtime.Serialization.Json;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -33,7 +31,7 @@ namespace Vindinium
         {
             this._key = key;
             this._trainingMode = trainingMode;
-            this._serverURL = serverURL;
+            this._serverURL = serverURL ?? new Uri("http://vindinium.org");
 
             //the reaons im doing the if statement here is so that i dont have to do it later
             if (trainingMode)
@@ -51,38 +49,31 @@ namespace Vindinium
         {
             if (bot != null)
             {
-                Console.WriteLine("Running [" + bot.Name + "]");
+                _logger.Info("Running [" + bot.Name + "]");
 
-                // TODO destructive assignation to method-local variable gameState
-                var gameState = this.CreateGame();
-
-                while (gameState.Errored)
-                {
-                    Console.WriteLine(gameState.ErrorText);
-                    Thread.Sleep(1000);
-                    gameState = this.CreateGame();
-                }
+                var gameState = RetryUntilSuccessful(this.CreateGame, 1000);
 
                 //opens up a webpage so you can view the game, doing it async so we dont time out
+                // TODO should we really use a TaskFactory or TaskScheduler here?
+                // would we gain anything by doing so?
                 new Thread(() => {
                     using (System.Diagnostics.Process.Start(gameState.ViewURL.ToString()))
                     {
                     }
                 }).Start();
 
-                while (gameState.Finished == false)
+                while (!gameState.Finished)
                 {
-                    gameState = this.MoveHero(bot.Move(gameState).ToString(), gameState.PlayURL);
-                    Console.WriteLine("completed turn [" + gameState.CurrentTurn.ToString() + "]");
-                    if (gameState.Errored)
-                    {
-                        Console.WriteLine(gameState.ErrorText);
-                        Thread.Sleep(1000);
-                    }
-                    }
+                    Func<Either<GameState, ErrorState>> f = () => 
+                        this.MoveHero(bot.Move(gameState).ToString(), gameState.PlayURL);
+                    
+                    gameState = RetryUntilSuccessful(f, 1000);
 
+                    _logger.Info("completed turn [" + gameState.CurrentTurn.ToString() + "]");
 
-                Console.WriteLine("[" + bot.Name + "] finished");
+                }
+
+                _logger.Info("[" + bot.Name + "] finished");
             }
         }
 
@@ -94,8 +85,9 @@ namespace Vindinium
         private Uri _serverURL;
 
 
+
         //initializes a new game, its syncronised
-        private GameState CreateGame()
+        private Either<GameState, ErrorState> CreateGame()
         {
 
             Uri uri = new Uri(_serverURL + ( _trainingMode ? "api/training" : "api/arena"));
@@ -109,7 +101,7 @@ namespace Vindinium
             return Upload(uri, myParameters);
         }
 
-        private GameState Upload(Uri uri, string parameters)
+        private Either<GameState, ErrorState> Upload(Uri uri, string parameters)
         {
             //make the request
             using (WebClient client = new WebClient())
@@ -119,25 +111,62 @@ namespace Vindinium
                 {
                     string result = client.UploadString(uri, parameters);
                     var gameResponse = JsonConvert.DeserializeObject<JObject>(result);
-                    return new GameState(gameResponse);
-
+                    return new Either<GameState, ErrorState>(new GameState(gameResponse));
                 }
                 catch (WebException exception)
                 {
-                    Console.WriteLine("Failed to contact ["+uri+"]");
-                    Console.WriteLine("WebException ["+exception+"]", exception);
+                    _logger.Error("Failed to contact ["+uri+"]");
+                    _logger.Error("WebException ["+exception+"]", exception);
 
-                    return new GameState(exception);
+                    return new Either<GameState, ErrorState>(new ErrorState(exception));
                 }
 
             }
         }
 
 
-        private GameState MoveHero(string direction, Uri playURL)
+        private Either<GameState, ErrorState> MoveHero(string direction, Uri playURL)
         {
             string myParameters = "key=" + _key + "&dir=" + direction;
             return Upload(playURL, myParameters);
+        }
+
+        internal static T RetryUntilSuccessful<T,U>(Func<Either<T, U>> f, int wait) where T : class where U : class
+        {
+            var either = f().GetValue();
+            var u = either as U;
+            if (u != null)
+            {
+                _logger.Error("Error value [" + u.ToString() + "]");
+                Thread.Sleep(wait);
+                // TODO exponential backoff
+                return RetryUntilSuccessful<T, U>(f, wait);
+            }
+            else
+            {
+                return either as T;
+            }
+        }
+    }
+    internal sealed class ErrorState
+    {
+        internal bool Errored { get; private set; }
+        internal string ErrorText { get; private set; }
+
+        internal ErrorState(WebException exception)
+        {
+            this.Errored = true;
+            if (exception.Response != null)
+            {
+                using (var reader = new StreamReader(exception.Response.GetResponseStream()))
+                {
+                    this.ErrorText = reader.ReadToEnd();
+                }
+            }
+            else
+            {
+                this.ErrorText = "The server is down";
+            }
         }
     }
 }

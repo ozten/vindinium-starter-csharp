@@ -3,8 +3,6 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>12.0.0</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{24BE46A8-0536-4359-BE20-0F0F4CD85E0E}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>VindiniumExample</RootNamespace>
@@ -33,6 +31,7 @@
     <Reference Include="log4net">
       <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
     </Reference>
+    <Reference Include="System.Configuration" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />

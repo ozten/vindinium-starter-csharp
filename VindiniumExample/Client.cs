@@ -1,8 +1,7 @@
 ﻿using System;
+using System.Configuration;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using log4net.Config;
 
 namespace Vindinium
 {
@@ -19,8 +18,11 @@ namespace Vindinium
         static void Main(string[] args)
         {
             //create the server stuff, when not in training mode, it doesnt matter
-            //what you use as the number of turns
-            ServerStuff serverStuff = new ServerStuff(args[0], args[1] != "arena", int.Parse(args[2]), new Uri(args[3]), null);
+            XmlConfigurator.Configure();
+            var settings = ConfigurationManager.AppSettings;  
+            var maybeUri = settings["uri"];
+            ServerStuff serverStuff = new ServerStuff(settings["key"], settings["mode"] != "arena",
+                int.Parse(settings["turns"]), maybeUri == null ? null : new Uri(maybeUri), settings["map"]);
 
             //create the random bot, replace this with your own bot
             RandomBot bot = new RandomBot();
