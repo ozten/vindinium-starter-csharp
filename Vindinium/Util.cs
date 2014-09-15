@@ -4,31 +4,27 @@ using Newtonsoft.Json.Linq;
 
 namespace Vindinium
 {
-    // TODO a direction enum so we don't have to care about the default value of T and U
-    internal sealed class Either<T, U>  where T : class where U : class {
-        internal T Left { get; private set; }
-        internal U Right { get; private set; }
-        internal Either(T t)
-        {
-            this.Left = t;
-        }
+    internal interface Either<in TLeft, in TRight> {
+       object Value { get; }
+    }
 
-        internal Either(U u)
+    internal sealed class Left<TLeft> : Either<TLeft, object> {
+        private readonly TLeft _value;
+        public Left(TLeft left)
         {
-            this.Right = u;
+            this._value = left;
         }
+        public object Value { get { return (object)_value;}}
+    }
 
-        internal object GetValue()
+
+    internal sealed class Right<TRight> : Either<object, TRight> {
+        private readonly TRight _value;
+        public Right(TRight right)
         {
-            if (this.Left == null)
-            {
-                return this.Right;
-            }
-            else
-            {
-                return this.Left;
-            }
+            this._value = right;
         }
+        public object Value { get { return (object)_value;}}
     }
 
     internal static class Util

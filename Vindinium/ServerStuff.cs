@@ -111,14 +111,14 @@ namespace Vindinium
                 {
                     string result = client.UploadString(uri, parameters);
                     var gameResponse = JsonConvert.DeserializeObject<JObject>(result);
-                    return new Either<GameState, ErrorState>(new GameState(gameResponse));
+                    return new Left<GameState>(new GameState(gameResponse));
                 }
                 catch (WebException exception)
                 {
                     _logger.Error("Failed to contact ["+uri+"]");
                     _logger.Error("WebException ["+exception+"]", exception);
 
-                    return new Either<GameState, ErrorState>(new ErrorState(exception));
+                    return new Right<ErrorState>(new ErrorState(exception));
                 }
 
             }
@@ -133,7 +133,7 @@ namespace Vindinium
 
         internal static T RetryUntilSuccessful<T,U>(Func<Either<T, U>> f, int wait) where T : class where U : class
         {
-            var either = f().GetValue();
+            var either = f().Value;
             var u = either as U;
             if (u != null)
             {
