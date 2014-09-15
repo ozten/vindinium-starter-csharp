@@ -13,5 +13,5 @@ using System;
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
 [assembly: Guid("3b77f05d-aee7-4521-8258-15cc6b26ccc5")]
-[assembly: AssemblyVersion("1.1.*")]
+[assembly: AssemblyVersion("1.2.*")]
 [assembly: CLSCompliant(true)]
