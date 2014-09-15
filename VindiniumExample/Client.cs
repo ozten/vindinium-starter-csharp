@@ -7,17 +7,8 @@ namespace Vindinium
 {
     static class Client
     {
-       
-        /**
-         * Launch client.
-         * @param args args[0] Private key
-         * @param args args[1] [training|arena]
-         * @param args args[2] number of turns
-         * @param args args[3] HTTP URL of Vindinium server (optional)
-         */
         static void Main(string[] args)
         {
-            //create the server stuff, when not in training mode, it doesnt matter
             XmlConfigurator.Configure();
             var settings = ConfigurationManager.AppSettings;  
             var maybeUri = settings["uri"];
