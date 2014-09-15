@@ -56,7 +56,8 @@ namespace Vindinium
                 //opens up a webpage so you can view the game, doing it async so we dont time out
                 // TODO should we really use a TaskFactory or TaskScheduler here?
                 // would we gain anything by doing so?
-                new Thread(() => {
+                new Thread(() =>
+                {
                     using (System.Diagnostics.Process.Start(gameState.ViewURL.ToString()))
                     {
                     }
@@ -90,7 +91,7 @@ namespace Vindinium
         private Either<GameState, ErrorState> CreateGame()
         {
 
-            Uri uri = new Uri(_serverURL + ( _trainingMode ? "api/training" : "api/arena"));
+            Uri uri = new Uri(_serverURL + (_trainingMode ? "api/training" : "api/arena"));
 
             string myParameters = "key=" + _key;
             if (_trainingMode)
@@ -115,8 +116,8 @@ namespace Vindinium
                 }
                 catch (WebException exception)
                 {
-                    _logger.Error("Failed to contact ["+uri+"]");
-                    _logger.Error("WebException ["+exception+"]", exception);
+                    _logger.Error("Failed to contact [" + uri + "]");
+                    _logger.Error("WebException [" + exception + "]", exception);
 
                     return new Right<ErrorState>(new ErrorState(exception));
                 }
@@ -148,9 +149,11 @@ namespace Vindinium
             }
         }
     }
+
     internal sealed class ErrorState
     {
         internal bool Errored { get; private set; }
+
         internal string ErrorText { get; private set; }
 
         internal ErrorState(WebException exception)

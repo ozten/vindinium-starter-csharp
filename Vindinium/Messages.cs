@@ -10,7 +10,7 @@ namespace Vindinium
     /// The current game state.
     /// </summary>
     public sealed class GameState
-    { 
+    {
         private Tile[][] _jaggedTiles;
 
         /// <summary>
@@ -91,13 +91,13 @@ namespace Vindinium
                 PlayURL = new Uri(playUrl);
             }
             var viewUrl = Util.JToken2T<string>(gameResponse, "viewUrl");
-            if(viewUrl != null)
+            if (viewUrl != null)
             {
                 this.ViewURL = new Uri(viewUrl);
             }
 
             this.MyHero = new Hero(gameResponse["hero"] as JObject);
-            var game = (JObject) gameResponse["game"];
+            var game = (JObject)gameResponse["game"];
             this.Heroes = (game["heroes"] as JArray ?? new JArray()).Select(x => new Hero(x as JObject)).ToList();
             this.CurrentTurn = Util.JToken2T<int>(game, "turn");
             this.MaxTurns = Util.JToken2T<int>(game, "maxTurns");
@@ -317,7 +317,8 @@ namespace Vindinium
         }
 
 
-        internal Pos(IDictionary<string, JToken> inp) {
+        internal Pos(IDictionary<string, JToken> inp)
+        {
             this.X = Util.JToken2T<int>(inp, "x");
             this.Y = Util.JToken2T<int>(inp, "y");
         }
@@ -330,7 +331,8 @@ namespace Vindinium
     /// </summary>
     public sealed class Hero
     {
-        internal Hero(IDictionary<string, JToken> inp) {
+        internal Hero(IDictionary<string, JToken> inp)
+        {
             this.Crashed = Util.JToken2T<bool>(inp, "crashed");
             this.Elo = Util.JToken2NullableT<int>(inp, "elo");
             this.Gold = Util.JToken2T<int>(inp, "gold");
@@ -348,7 +350,8 @@ namespace Vindinium
         /// <value>The identifier.</value>
         public int Id
         {
-            get; private set;
+            get;
+            private set;
         }
 
         /// <summary>
@@ -357,7 +360,8 @@ namespace Vindinium
         /// <value>The name.</value>
         public string Name
         {
-            get; private set;
+            get;
+            private set;
         }
 
         /// <summary>
@@ -367,7 +371,8 @@ namespace Vindinium
         /// <remarks>Is absent sometimes. (On the first run?)</remarks>
         public int? Elo
         {
-            get; private set;
+            get;
+            private set;
         }
 
         /// <summary>
@@ -376,7 +381,8 @@ namespace Vindinium
         /// <value>The position.</value>
         public Pos Pos
         {
-            get; private set;
+            get;
+            private set;
         }
 
         /// <summary>
@@ -385,7 +391,8 @@ namespace Vindinium
         /// <value>The life.</value>
         public int Life
         {
-            get; private set;
+            get;
+            private set;
         }
 
         /// <summary>
@@ -394,7 +401,8 @@ namespace Vindinium
         /// <value>The gold.</value>
         public int Gold
         {
-            get; private set;
+            get;
+            private set;
         }
 
         /// <summary>
@@ -403,7 +411,8 @@ namespace Vindinium
         /// <value>The mine count.</value>
         public int MineCount
         {
-            get; private set;
+            get;
+            private set;
         }
 
         /// <summary>
@@ -412,7 +421,8 @@ namespace Vindinium
         /// <value>The spawn position.</value>
         public Pos SpawnPos
         {
-            get; private set;
+            get;
+            private set;
         }
 
         /// <summary>
@@ -421,7 +431,8 @@ namespace Vindinium
         /// <value>The crashed.</value>
         public bool Crashed
         {
-            get; private set;
+            get;
+            private set;
         }
 
     }
