@@ -7,13 +7,17 @@ namespace Vindinium
 {
     static class Client
     {
-        static void Main(string[] args)
+        static void Main()
         {
             XmlConfigurator.Configure();
             var settings = ConfigurationManager.AppSettings;  
             var maybeUri = settings["uri"];
+            var maybeTurns = settings["turns"];
+            int turnsTmp;
+            // an out parameter! 
+            var turns = int.TryParse(maybeTurns, out turnsTmp) ? turnsTmp : 10;
             ServerStuff serverStuff = new ServerStuff(settings["key"], settings["mode"] != "arena",
-                int.Parse(settings["turns"]), maybeUri == null ? null : new Uri(maybeUri), settings["map"]);
+                turns, maybeUri == null ? null : new Uri(maybeUri), settings["map"]);
 
             //create the random bot, replace this with your own bot
             RandomBot bot = new RandomBot();

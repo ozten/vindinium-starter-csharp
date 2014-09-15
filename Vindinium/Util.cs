@@ -4,12 +4,12 @@ using Newtonsoft.Json.Linq;
 
 namespace Vindinium
 {
-    internal interface Either<in TLeft, in TRight>
+    internal interface IEither<in TLeft, in TRight>
     {
         object Value { get; }
     }
 
-    internal sealed class Left<TLeft> : Either<TLeft, object>
+    internal sealed class Left<TLeft> : IEither<TLeft, object>
     {
         private readonly TLeft _value;
 
@@ -22,7 +22,7 @@ namespace Vindinium
     }
 
 
-    internal sealed class Right<TRight> : Either<object, TRight>
+    internal sealed class Right<TRight> : IEither<object, TRight>
     {
         private readonly TRight _value;
 
@@ -60,7 +60,7 @@ namespace Vindinium
             }
             else
             {
-                throw new ArgumentNullException("No dictionary specified", "inp");
+                throw new ArgumentNullException("inp", "No dictionary specified");
             }
         }
 
@@ -73,7 +73,8 @@ namespace Vindinium
                     var outp = inp[key];
                     if (outp == null)
                     {
-                        throw new ArgumentException("Key [" + key + "] null in message [" + inp + "]", "key");
+                        throw new ArgumentException("Key [" + key + "] null in message [" + inp + "]",
+                            "key");
                     }
                     else
                     {
@@ -82,12 +83,13 @@ namespace Vindinium
                 }
                 else
                 {
-                    throw new ArgumentException("Key [" + key + "] absent from message [" + inp + "]", "key");
+                    throw new ArgumentException("Key [" + key + "] absent from message [" + inp + "]",
+                        "key");
                 }
             }
             else
             {
-                throw new ArgumentNullException("No dictionary specified", "inp");
+                throw new ArgumentNullException("inp", "No dictionary specified"); 
             }
         }
 

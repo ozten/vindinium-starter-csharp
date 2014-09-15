@@ -65,7 +65,7 @@ namespace Vindinium
 
                 while (!gameState.Finished)
                 {
-                    Func<Either<GameState, ErrorState>> f = () => 
+                    Func<IEither<GameState, ErrorState>> f = () => 
                         this.MoveHero(bot.Move(gameState).ToString(), gameState.PlayURL);
                     
                     gameState = RetryUntilSuccessful(f, 1000);
@@ -88,7 +88,7 @@ namespace Vindinium
 
 
         //initializes a new game, its syncronised
-        private Either<GameState, ErrorState> CreateGame()
+        private IEither<GameState, ErrorState> CreateGame()
         {
 
             Uri uri = new Uri(_serverURL + (_trainingMode ? "api/training" : "api/arena"));
@@ -102,7 +102,7 @@ namespace Vindinium
             return Upload(uri, myParameters);
         }
 
-        private Either<GameState, ErrorState> Upload(Uri uri, string parameters)
+        private IEither<GameState, ErrorState> Upload(Uri uri, string parameters)
         {
             //make the request
             using (WebClient client = new WebClient())
@@ -126,13 +126,13 @@ namespace Vindinium
         }
 
 
-        private Either<GameState, ErrorState> MoveHero(string direction, Uri playURL)
+        private IEither<GameState, ErrorState> MoveHero(string direction, Uri playURL)
         {
             string myParameters = "key=" + _key + "&dir=" + direction;
             return Upload(playURL, myParameters);
         }
 
-        internal static T RetryUntilSuccessful<T,U>(Func<Either<T, U>> f, int wait) where T : class where U : class
+        internal static T RetryUntilSuccessful<T,U>(Func<IEither<T, U>> f, int wait) where T : class where U : class
         {
             var either = f().Value;
             var u = either as U;
