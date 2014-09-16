@@ -107,7 +107,8 @@ namespace Vindinium
         /// <summary>
         /// Gets or sets the map to be used in training mode.
         /// </summary>
-        /// <remarks>If not specified, a random map will be chosen.</remarks>
+        /// <remarks>If not specified, a random map will be chosen; this property
+        /// is not relevant in Arena mode.</remarks>
         /// <value>The map.</value>
         [ConfigurationProperty("map", DefaultValue="Random", IsRequired=false)]
         public Map Map 
@@ -117,11 +118,12 @@ namespace Vindinium
         }
 
         /// <summary>
-        /// Gets or sets the type of the bot to use.
+        /// Gets or sets the type of the bot to use, represented as a string.
         /// </summary>
         /// <remarks>The type in question must extend IBot and have a zero-argument
         /// constructor. If specified the bot will be created and run
-        /// when the ServerStuff is initialized. If not specified then
+        /// when the ServerStuff.Start() is called. If not specified then
+        /// ServerStuff can be constructed with its zero-argument constructor and
         /// a bot can be submitted later.</remarks>
         /// <value>The bot.</value>
         [ConfigurationProperty("bot", IsRequired=false)]
