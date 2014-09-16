@@ -11,5 +11,6 @@ namespace Vindinium.Common.Services
         string StartArena();
         string Start(string mapText);
         string Play(string gameId, string token, Direction direction);
+        void ChangeMap(string mapText);
     }
 }

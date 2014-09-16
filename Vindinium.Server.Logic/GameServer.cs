@@ -12,6 +12,7 @@ namespace Vindinium.Game.Logic
     {
         private const string Tavern = "[]";
         private const string MinePrefix = "$";
+        private const string NeutralMine = "$-";
         private const string OpenPath = "  ";
         private const string PlayerPrefix = "@";
         private GameResponse _response = new GameResponse();
@@ -40,7 +41,11 @@ namespace Vindinium.Game.Logic
 
                 PlayerMoving(playerPos, map, targetToken, targetPos, player);
                 PlayerMoved(direction, targetToken, player, map);
-                RefreshData(map);
+                MoveDeadPlayers(map);
+                MakePlayerThirsty(player);
+                ApplyMapChanges(map);
+                ReviveDeadPlayers();
+                IncrimentGold(player);
             }
 
             return _response.ToJson();
@@ -67,13 +72,7 @@ namespace Vindinium.Game.Logic
                     Finished = false,
                     Id = "the-game-id",
                     MaxTurns = 20,
-                    Players = new List<Hero>
-                    {
-                        CreateHero(mapText, grid, 1),
-                        CreateHero(mapText, grid, 2),
-                        CreateHero(mapText, grid, 3),
-                        CreateHero(mapText, grid, 4)
-                    },
+                    Players = new List<Hero>(),
                     Turn = 0
                 },
                 PlayUrl = "http://vindinium.org/api/the-game-id/the-token/play",
@@ -81,20 +80,74 @@ namespace Vindinium.Game.Logic
                 Token = "the-token",
                 ViewUrl = "http://vindinium.org/the-game-id"
             };
+            for (int i = 0; i < 10; i++)
+            {
+                if (grid.PositionOf(string.Format("{0}{1}", PlayerPrefix, i)) != null)
+                {
+                    _response.Game.Players.Add(CreateHero(mapText, grid, i));
+                }
+            }
             return _response.ToJson();
         }
 
-        private void RefreshData(Grid map)
+        public void ChangeMap(string mapText)
+        {
+            ApplyMapChanges(new Grid {MapText = mapText});
+        }
+
+        private void ReviveDeadPlayers()
+        {
+            _response.Game.Players.Where(p => p.Life <= 0).ToList().ForEach(p => p.Life = 100);
+        }
+
+        private void IncrimentGold(Hero player)
+        {
+            player.Gold += player.MineCount;
+            _response.Self = _response.Game.Players.First(p => p.Id == 1);
+        }
+
+        private void MakePlayerThirsty(Hero player)
+        {
+            if (player.Life > 1)
+            {
+                player.Life--;
+            }
+        }
+
+        private void MoveDeadPlayers(Grid map)
+        {
+            Hero[] deadPlayers = _response.Game.Players.Where(p => p.Life <= 0 && p.Pos != p.SpawnPos).ToArray();
+            do
+            {
+                foreach (Hero deadPlayer in deadPlayers)
+                {
+                    string playerMine = string.Format("{0}{1}", MinePrefix, deadPlayer.Id);
+                    ReplaceMapToken(map, playerMine, NeutralMine);
+                    _response.Game.Players.Where(p => p.Pos == deadPlayer.SpawnPos).ToList().ForEach(p => p.Life = 0);
+                    map[deadPlayer.Pos] = OpenPath;
+                    deadPlayer.Pos = deadPlayer.SpawnPos;
+                }
+                deadPlayers = _response.Game.Players.Where(p => p.Life <= 0 && p.Pos != p.SpawnPos).ToArray();
+            } while (deadPlayers.Any());
+
+            _response.Game.Players.ForEach(p => { map[p.Pos] = string.Format("{0}{1}", PlayerPrefix, p.Id); });
+        }
+
+        private static void ReplaceMapToken(Grid map, string oldToken, string newToken)
+        {
+            map.ForEach(p =>
+            {
+                if (map[p] == oldToken)
+                {
+                    map[p] = newToken;
+                }
+            });
+        }
+
+        private void ApplyMapChanges(Grid map)
         {
             _response.Game.Players.ForEach(p => RefreshHero(p.Id, map));
             _response.Game.Board.MapText = map.MapText;
-
-            Hero self = _response.Game.Players.First(p => p.Id == 1);
-            if (self.Life > 1)
-            {
-                self.Life--;
-            }
-            _response.Self = self;
         }
 
         private void RefreshHero(int playerId, Grid grid)
@@ -102,23 +155,8 @@ namespace Vindinium.Game.Logic
             Hero player = _response.Game.Players.First(p => p.Id == playerId);
             string heroToken = string.Format("{0}{1}", PlayerPrefix, playerId);
             string mineToken = string.Format("{0}{1}", MinePrefix, playerId);
-            if (player.Life <= 0)
-            {
-                grid[player.Pos] = OpenPath;
-                grid[player.SpawnPos] = heroToken;
-                player.Life = 100;
-                player.Pos = player.SpawnPos;
-            }
-            else
-            {
-                player.Pos = grid.PositionOf(heroToken);
-            }
-
-            int mineCount = 0;
-            grid.ForEach(p => { if (grid[p] == mineToken) mineCount++; });
-
-            player.MineCount = mineCount;
-            player.Gold += mineCount;
+            player.Pos = grid.PositionOf(heroToken);
+            player.MineCount = Regex.Matches(grid.MapText, Regex.Escape(mineToken)).Count;
         }
 
         private void Start()

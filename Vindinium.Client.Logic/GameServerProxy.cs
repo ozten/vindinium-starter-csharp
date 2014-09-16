@@ -41,6 +41,11 @@ namespace Vindinium.Client.Logic
             throw new NotImplementedException();
         }
 
+        public void ChangeMap(string mapText)
+        {
+            throw new NotImplementedException();
+        }
+
         private string CallApi(IApiRequest request)
         {
             ApiResponse = _caller.Call(request);

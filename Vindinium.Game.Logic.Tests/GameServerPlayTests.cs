@@ -58,8 +58,26 @@ namespace Vindinium.Game.Logic.Tests
             Assert.That(response.Self.Life, Is.EqualTo(19));
             response = Play(response.Token, Direction.North);
 
-            Assert.That(response.Self.Life, Is.EqualTo(99));
+            Assert.That(response.Self.Life, Is.EqualTo(100));
             Assert.That(response.Game.Board.MapText, Is.EqualTo("$-    @1"));
+        }
+
+        [Test]
+        public void SpawnOnPlayer()
+        {
+            GameResponse response = Start("@1@2@3@4");
+            response = Play(response.Token, Direction.Stay);
+            _server.ChangeMap("@2@3@4@1"); // pretend players moved to each others spawns
+            response = Play(response.Token, Direction.West);
+            Assert.That(response.Game.Board.MapText, Is.EqualTo("@2@3@4@1"));
+            response = Play(response.Token, Direction.West);
+            response = Play(response.Token, Direction.West);
+            response = Play(response.Token, Direction.West);
+            Assert.That(response.Game.Players.First(p => p.Id == 4).Life, Is.EqualTo(20));
+            response = Play(response.Token, Direction.West);
+
+
+            Assert.That(response.Game.Board.MapText, Is.EqualTo("@1@2@3@4"));
         }
 
         [Test]
@@ -86,7 +104,7 @@ namespace Vindinium.Game.Logic.Tests
             for (int i = 0; i < 100; i++) Play(response.Token, Direction.Stay);
             response = Play(response.Token, Direction.North);
             Assert.That(response.Game.Board.MapText, Is.EqualTo("$-  @1  "));
-            Assert.That(response.Game.Players[0].Life, Is.EqualTo(99));
+            Assert.That(response.Game.Players[0].Life, Is.EqualTo(100));
             Assert.That(response.Self.MineCount, Is.EqualTo(0));
         }
 
@@ -108,7 +126,7 @@ namespace Vindinium.Game.Logic.Tests
             Assert.That(response.Game.Board.MapText, Is.EqualTo("$1@4@1  "));
             Assert.That(response.Self.MineCount, Is.EqualTo(1));
             Assert.That(response.Self.Life, Is.EqualTo(79));
-            Assert.That(response.Game.Players[3].MineCount, Is.EqualTo(0));
+            Assert.That(response.Game.Players.First(p => p.Id == 4).MineCount, Is.EqualTo(0));
         }
 
         [Test]
