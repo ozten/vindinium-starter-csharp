@@ -5,8 +5,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{24BE46A8-0536-4359-BE20-0F0F4CD85E0E}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>VindiniumExample</RootNamespace>
-    <AssemblyName>VindiniumExample</AssemblyName>
+    <RootNamespace>Vindinium.Example</RootNamespace>
+    <AssemblyName>Vindinium.Example</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

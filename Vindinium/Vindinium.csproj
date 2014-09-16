@@ -7,7 +7,7 @@
     <ProjectGuid>{D92489E7-49E9-4D1B-8E01-FB69223E0BE3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>vindinium</RootNamespace>
+    <RootNamespace>Vindinium</RootNamespace>
     <AssemblyName>Vindinium</AssemblyName>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

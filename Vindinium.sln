@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vindinium", "Vindinium\Vindinium.csproj", "{D92489E7-49E9-4D1B-8E01-FB69223E0BE3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vindinium.Example", "VindiniumExample\Vindinium.Example.csproj", "{24BE46A8-0536-4359-BE20-0F0F4CD85E0E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vindinium.Example", "Vindinium.Example\Vindinium.Example.csproj", "{24BE46A8-0536-4359-BE20-0F0F4CD85E0E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vindinium.Tests", "Vindinium.Tests\Vindinium.Tests.csproj", "{B90B03E1-CD13-4BCC-AD8A-B405A502EAB4}"
 EndProject
