@@ -116,6 +116,8 @@ namespace Vindinium
 
         private IEither<GameState, ErrorState> Upload(Uri uri, string parameters)
         {
+            _logger.Debug("URI: [" + uri + "]");
+            _logger.Debug("Params: [" + parameters + "]");
             //make the request
             using (WebClient client = new WebClient())
             {

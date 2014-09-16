@@ -31,7 +31,6 @@ namespace Vindinium
 				i == 2 ? Direction.South : 
 				i == 3 ? Direction.Stay :
 				Direction.West;
-            Console.WriteLine(outp);
             return outp;
         }
     }
