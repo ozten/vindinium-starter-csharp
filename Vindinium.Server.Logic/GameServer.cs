@@ -32,16 +32,14 @@ namespace Vindinium.Game.Logic
             var map = new Grid {MapText = _response.Game.Board.MapText};
             lock (map.SynchronizationRoot)
             {
-                Hero player = _response.Game.Players.First(p => p.Id == 1);
-                Pos playerPos = _response.Self.Pos;
-                string playerToken = map[playerPos];
+                Hero player = _response.Game.Players.First(p => p.Id == _response.Self.Id);
+                Pos playerPos = player.Pos;
                 Pos targetPos = playerPos + GetTargetOffset(direction);
                 KeepPositionOnMap(targetPos, _response.Game.Board.Size);
                 string targetToken = map[targetPos];
 
                 PlayerMoving(playerPos, map, targetToken, targetPos, player);
-                PlayerMoved(direction, targetToken, playerToken, map);
-                _response.Game.Players.ForEach(p => { if (p.Life < 1) p.Life = 100; });
+                PlayerMoved(direction, targetToken, player, map);
                 RefreshData(map);
             }
 
@@ -88,26 +86,38 @@ namespace Vindinium.Game.Logic
 
         private void RefreshData(Grid map)
         {
-            _response.Game.Board.MapText = map.MapText;
             _response.Game.Players.ForEach(p => RefreshHero(p.Id, map));
+            _response.Game.Board.MapText = map.MapText;
+
             Hero self = _response.Game.Players.First(p => p.Id == 1);
             if (self.Life > 1)
             {
                 self.Life--;
             }
-            _response.Self = _response.Game.Players.First(p => p.Id == 1);
+            _response.Self = self;
         }
 
         private void RefreshHero(int playerId, Grid grid)
         {
+            Hero player = _response.Game.Players.First(p => p.Id == playerId);
             string heroToken = string.Format("{0}{1}", PlayerPrefix, playerId);
             string mineToken = string.Format("{0}{1}", MinePrefix, playerId);
-            Pos position = grid.PositionOf(heroToken);
-            int mineCount = Regex.Matches(_response.Game.Board.MapText, Regex.Escape(mineToken)).Count;
+            if (player.Life <= 0)
+            {
+                grid[player.Pos] = OpenPath;
+                grid[player.SpawnPos] = heroToken;
+                player.Life = 100;
+                player.Pos = player.SpawnPos;
+            }
+            else
+            {
+                player.Pos = grid.PositionOf(heroToken);
+            }
 
-            Hero player = _response.Game.Players.First(p => p.Id == playerId);
+            int mineCount = 0;
+            grid.ForEach(p => { if (grid[p] == mineToken) mineCount++; });
+
             player.MineCount = mineCount;
-            player.Pos = position;
             player.Gold += mineCount;
         }
 
@@ -148,17 +158,19 @@ namespace Vindinium.Game.Logic
             };
         }
 
-        private void PlayerMoved(Direction direction, string targetToken, string playerToken, Grid map)
+        private void PlayerMoved(Direction direction, string targetToken, Hero player, Grid map)
         {
-            if (targetToken.StartsWith(PlayerPrefix) && direction != Direction.Stay && targetToken != playerToken)
+            string selfTokene = string.Format("{0}{1}", PlayerPrefix, player.Id);
+            if (targetToken.StartsWith(PlayerPrefix) && direction != Direction.Stay && targetToken != selfTokene)
             {
                 int enemyId = int.Parse(targetToken.Substring(1));
                 Hero enemy = _response.Game.Players.First(p => p.Id == enemyId);
                 enemy.Life -= 20;
+                string selfMine = string.Format("{0}{1}", MinePrefix, player.Id);
+                string enemyMine = string.Format("{0}{1}", MinePrefix, enemy.Id);
                 if (enemy.Life <= 0)
                 {
-                    enemy.Life = 100;
-                    map.ForEach(p => { if (map[p] == "$2") map[p] = "$1"; });
+                    map.ForEach(p => { if (map[p] == enemyMine) map[p] = selfMine; });
                 }
             }
         }

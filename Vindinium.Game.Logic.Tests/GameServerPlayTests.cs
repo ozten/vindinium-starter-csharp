@@ -49,6 +49,20 @@ namespace Vindinium.Game.Logic.Tests
         }
 
         [Test]
+        public void SpawnOnDeath()
+        {
+            GameResponse response = Start("$-    @1");
+            for (int i = 0; i < 80; i++)
+                Play(response.Token, Direction.Stay);
+            response = Play(response.Token, Direction.West);
+            Assert.That(response.Self.Life, Is.EqualTo(19));
+            response = Play(response.Token, Direction.North);
+
+            Assert.That(response.Self.Life, Is.EqualTo(99));
+            Assert.That(response.Game.Board.MapText, Is.EqualTo("$-    @1"));
+        }
+
+        [Test]
         public void Steps()
         {
             GameResponse response = Start("  ##@1##");
