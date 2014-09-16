@@ -19,6 +19,51 @@ namespace Vindinium
     public sealed class ServerStuff
     {
         /// <summary>
+        /// Creates an instance of ServerStuff from a config file and uses it to run a bot specified in the config file.
+        /// </summary>
+        public static void Start()
+        {
+            var config = (Vindinium.ConfigurationSection)System.Configuration.ConfigurationManager.GetSection("Vindinium");
+            var serverStuff = new ServerStuff();
+            if (config != null)
+            {
+                var botTypeS = config.Bot;
+                if (botTypeS != null)
+                {
+                    var botType = Type.GetType(botTypeS);
+                    if (botType == null)
+                    {
+                        _logger.Error("Couldn't find type [" + botTypeS + "], did you remember to specify the assembly too?");
+                    }
+                    else
+                    {
+                        try
+                        {
+                            var maybeBot = Activator.CreateInstance(botType);
+                            var bot = maybeBot as IBot;
+                            if (bot == null)
+                            {
+                                _logger.Error("[" + botType + "] does not seem to implement IBot");
+                            }
+                            else
+                            {
+                                serverStuff.Submit(bot);
+                            }
+                        }
+                        catch (MissingMethodException e)
+                        {
+                            _logger.Error("The specified class doesn't seem to have a zero-argument constructor", e);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                _logger.Error("Can't find the config");
+            }
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Vindinium.ServerStuff"/> class.
         /// </summary>
         /// <remarks>This constructor uses a config file to initialize the connection.</remarks>
@@ -26,14 +71,8 @@ namespace Vindinium
         {
 
             var config = (Vindinium.ConfigurationSection)System.Configuration.ConfigurationManager.GetSection("Vindinium");
-            if (config != null)
-            {
-                this.Setup(config.Key, config.Mode, config.Turns, config.ServerUrl, config.Map);
-            }
-            else
-            {
-                _logger.Error("Can't find the config");
-            }
+            this.Setup(config.Key, config.Mode, config.Turns, config.ServerUrl, config.Map);
+
         }
 
         /// <summary>

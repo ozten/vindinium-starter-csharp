@@ -114,9 +114,23 @@ namespace Vindinium
         {
             get { return (Map)this["map"]; }
             set { this["map"] = value; }
-
         }
 
+        /// <summary>
+        /// Gets or sets the type of the bot to use.
+        /// </summary>
+        /// <remarks>The type in question must extend IBot and have a zero-argument
+        /// constructor. If specified the bot will be created and run
+        /// when the ServerStuff is initialized. If not specified then
+        /// a bot can be submitted later.</remarks>
+        /// <value>The bot.</value>
+        [ConfigurationProperty("bot", IsRequired=false)]
+        public string Bot
+        {
+            get { return (string)this["bot"]; }
+            set { this["bot"] = value; }
+        }
+       
     }
 
 
