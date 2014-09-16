@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -17,28 +18,37 @@ namespace Vindinium
     /// </summary>
     public sealed class ServerStuff
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Vindinium.ServerStuff"/> class.
+        /// </summary>
+        /// <remarks>This constructor uses a config file to initialize the connection.</remarks>
+        public ServerStuff()
+        {
+
+            var config = (Vindinium.ConfigurationSection)System.Configuration.ConfigurationManager.GetSection("Vindinium");
+            if (config != null)
+            {
+                this.Setup(config.Key, config.Mode, config.Turns, config.ServerUrl, config.Map);
+            }
+            else
+            {
+                _logger.Error("Can't find the config");
+            }
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Vindinium.ServerStuff"/> class.
         /// </summary>
-        /// <remarks>If training mode is false, turns and map are ignored.</remarks>
+        /// <remarks>If trainingMode is Arena, turns and map are ignored.
+        /// use this constructor if you don't want to use a config file to configure your connection.</remarks>
         /// <param name="key">Your API key that you got from the vindinium server.</param>
-        /// <param name="trainingMode">If set to <c>true</c> training mode; otherwise arena mode.</param>
+        /// <param name="trainingMode">The mode to run the bot in.</param>
         /// <param name="turns">The number of turns that the game should last.</param>
         /// <param name="serverURL">The URL of the server.</param>
         /// <param name="map">The Vindinium map to use.</param>
-        public ServerStuff(string key, bool trainingMode, int turns, Uri serverURL, string map)
+        public ServerStuff(string key, Mode trainingMode, int turns, Uri serverURL, Map map)
         {
-            this._key = key;
-            this._trainingMode = trainingMode;
-            this._serverURL = serverURL ?? new Uri("http://vindinium.org");
-
-            //the reaons im doing the if statement here is so that i dont have to do it later
-            if (trainingMode)
-            {
-                this._turns = (uint)turns;
-                this._map = map;
-            }
+            this.Setup(key, trainingMode, turns, serverURL, map);
         }
 
         /// <summary>
@@ -80,7 +90,7 @@ namespace Vindinium
 
         private static readonly ILog _logger = LogManager.GetLogger(typeof(ServerStuff));
         private string _key;
-        private bool _trainingMode;
+        private string _trainingMode;
         private uint _turns;
         private string _map;
         private Uri _serverURL;
@@ -91,13 +101,15 @@ namespace Vindinium
         private IEither<GameState, ErrorState> CreateGame()
         {
 
-            Uri uri = new Uri(_serverURL + (_trainingMode ? "api/training" : "api/arena"));
+            Uri uri = new Uri(_serverURL + "api/" + _trainingMode);
 
             string myParameters = "key=" + _key;
-            if (_trainingMode)
+            if (_trainingMode == "training") {
                 myParameters += "&turns=" + _turns.ToString();
-            if (_map != null)
-                myParameters += "&map=" + _map;
+		if (_map != null) {
+	            myParameters += "&map=" + _map;
+	        }
+            }
 
             return Upload(uri, myParameters);
         }
@@ -148,6 +160,24 @@ namespace Vindinium
                 return either as T;
             }
         }
+
+        private void Setup(string key, Mode trainingMode, int turns, Uri serverURL, Map map)
+        {
+            this._key = key;
+            this._trainingMode = trainingMode.ToString().ToLower(CultureInfo.InvariantCulture);
+            this._serverURL = serverURL ?? new Uri("http://vindinium.org");
+
+            //the reaons im doing the if statement here is so that i dont have to do it later
+            if (trainingMode == Mode.Training)
+            {
+                this._turns = (uint)turns;
+                if (map != Map.Random)
+                {
+                    this._map = map.ToString().ToLower(CultureInfo.InvariantCulture);
+                }
+            }
+        }
+
     }
 
     internal sealed class ErrorState
@@ -171,5 +201,6 @@ namespace Vindinium
                 this.ErrorText = "The server is down";
             }
         }
-    }
+
+    }   
 }
