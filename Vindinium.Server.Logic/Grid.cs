@@ -107,5 +107,39 @@ namespace Vindinium.Game.Logic
                 }
             }
         }
+
+        internal void MakeSymmetric()
+        {
+            lock (SynchronizationRoot)
+            {
+                for (int y = 0; y < _size/2; y++)
+                {
+                    for (int x = 0; x < _size/2; x++)
+                    {
+                        string token = _grid[x, y];
+                        int max = _size - 1;
+
+                        if (token.StartsWith("@"))
+                        {
+                            _grid[x, y] = PlayerToken(1);
+                            _grid[x, max - y] = PlayerToken(2);
+                            _grid[max - x, y] = PlayerToken(3);
+                            _grid[max - x, max - y] = PlayerToken(4);
+                        }
+                        else
+                        {
+                            _grid[max - x, y] = token;
+                            _grid[max - x, max - y] = token;
+                            _grid[x, max - y] = token;
+                        }
+                    }
+                }
+            }
+        }
+
+        private static string PlayerToken(int id)
+        {
+            return string.Format("@{0}", id);
+        }
     }
 }

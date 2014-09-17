@@ -15,6 +15,7 @@ namespace Vindinium.Game.Logic
         private const string MinePrefix = "$";
         private const string NeutralMine = "$-";
         private const string OpenPath = "  ";
+        private const string Obstruction = "##";
         private const string PlayerPrefix = "@";
         private GameResponse _response = new GameResponse();
 
@@ -164,17 +165,43 @@ namespace Vindinium.Game.Logic
 
         private void Start()
         {
-            Start(string.Format("{0}{1}{2}{3}{4}{5}{6}{7}{8}{9}",
-                "        [][]        ",
-                "##                ##",
-                "$-  @1$-####$-@4  $-",
-                "##  ##        ##  ##",
-                "                    ",
-                "                    ",
-                "##  ##        ##  ##",
-                "$-  @2$-####$-@3  $-",
-                "##                ##",
-                "        [][]        "));
+            Start(GenerateMap());
+        }
+
+        private string GenerateMap()
+        {
+            var grid = new Grid();
+            int seed = (int) DateTime.Now.Ticks%int.MaxValue;
+            var random = new Random(seed);
+            int quarter = random.Next(5, 14);
+            int size = quarter*2;
+            grid.MapText = "".PadLeft(size*size*2, ' ');
+            AddToken(grid, Tavern, random);
+            AddToken(grid, string.Format("{0}-", PlayerPrefix), random);
+            for (int i = 0; i < 4; i++)
+            {
+                AddToken(grid, NeutralMine, random);
+            }
+            for (int i = 0; i < 8; i++)
+            {
+                AddToken(grid, Obstruction, random);
+            }
+
+            grid.MakeSymmetric();
+            return grid.MapText;
+        }
+
+        private void AddToken(Grid grid, string token, Random random)
+        {
+            int max = grid.Size/2;
+
+            var pos = new Pos {X = random.Next(1, max), Y = random.Next(1, max)};
+            while (grid[pos] != OpenPath)
+            {
+                pos.X = random.Next(1, max);
+                pos.Y = random.Next(1, max);
+            }
+            grid[pos] = token;
         }
 
         private static Hero CreateHero(string mapText, Grid grid, int playerId)

@@ -126,6 +126,16 @@ namespace Vindinium.Game.Logic.Tests
         }
 
         [Test]
+        public void EachGameHasADifferentBoard()
+        {
+            // TODO: Inject randomizer
+            var server = new GameServer();
+            var game1 = server.StartTraining(3000).JsonToObject<GameResponse>();
+            var game2 = server.StartTraining(3000).JsonToObject<GameResponse>();
+            Assert.That(game1.Game.Board, Is.Not.EqualTo(game2.Game.Board));
+        }
+
+        [Test]
         public void EachGameHasADifferentGameId()
         {
             var server = new GameServer();
@@ -160,6 +170,7 @@ namespace Vindinium.Game.Logic.Tests
         public void GameBoardHasSize()
         {
             Assert.That(_gameResponse.Game.Board.Size, Is.InRange(10, 28));
+            Assert.That(_gameResponse.Game.Board.Size%2, Is.EqualTo(0), "Not even");
         }
 
         [Test]
