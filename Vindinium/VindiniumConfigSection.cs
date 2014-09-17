@@ -1,8 +1,8 @@
-﻿using System;
-using System.Configuration;
-
-namespace Vindinium
+﻿namespace Vindinium
 {
+    using System;
+    using System.Configuration;
+
     /// <summary>
     /// The mode that the bot is running in (Training/Arena).
     /// </summary>
@@ -12,6 +12,7 @@ namespace Vindinium
         /// Training Mode
         /// </summary>
         Training = 0,
+
         /// <summary>
         /// Arena Mode
         /// </summary>
@@ -27,26 +28,32 @@ namespace Vindinium
         /// Choose a random map
         /// </summary>
         Random = 0,
+
         /// <summary>
         /// Use the first map
         /// </summary>
         M1,
+
         /// <summary>
         /// Use the second map
         /// </summary>
         M2,
+
         /// <summary>
         /// Use the third map
         /// </summary>
         M3,
+
         /// <summary>
         /// Use the fourth map
         /// </summary>
         M4,
+
         /// <summary>
         /// Use the fifth map
         /// </summary>
         M5,
+
         /// <summary>
         /// Use the sixth map
         /// </summary>
@@ -85,19 +92,19 @@ namespace Vindinium
         /// </summary>
         /// <remarks>This will be ignored when the mode is "Arena".</remarks>
         /// <value>The turns.</value>
-        [ConfigurationProperty("turns", DefaultValue="10", IsRequired=false)]
+        [ConfigurationProperty("turns", DefaultValue = "10", IsRequired = false)]
         public int Turns
         {
             get { return (int)this["turns"]; }
             set { this["turns"] = value; }
-        }
+         }
 
         /// <summary>
         /// Gets or sets the server URL.
         /// </summary>
         /// <remarks>Defaults to http://vindinium.org</remarks>
         /// <value>The server URL.</value>
-        [ConfigurationProperty("serverUrl", DefaultValue="http://vindinium.org", IsRequired=false)]
+        [ConfigurationProperty("serverUrl", DefaultValue = "http://vindinium.org", IsRequired = false)]
         public Uri ServerUrl
         {
             get { return (Uri)this["serverUrl"]; }
@@ -110,7 +117,7 @@ namespace Vindinium
         /// <remarks>If not specified, a random map will be chosen; this property
         /// is not relevant in Arena mode.</remarks>
         /// <value>The map.</value>
-        [ConfigurationProperty("map", DefaultValue="Random", IsRequired=false)]
+        [ConfigurationProperty("map", DefaultValue = "Random", IsRequired = false)]
         public Map Map 
         {
             get { return (Map)this["map"]; }
@@ -126,15 +133,11 @@ namespace Vindinium
         /// ServerStuff can be constructed with its zero-argument constructor and
         /// a bot can be submitted later.</remarks>
         /// <value>The bot.</value>
-        [ConfigurationProperty("bot", IsRequired=false)]
+        [ConfigurationProperty("bot", IsRequired = false)]
         public string Bot
         {
             get { return (string)this["bot"]; }
             set { this["bot"] = value; }
         }
-       
     }
-
-
 }
-

@@ -1,15 +1,21 @@
-﻿using NUnit.Framework;
-using System;
+﻿namespace Vindinium.Tests
+{   
+    using System;
 
-namespace Vindinium.Tests
-{
-    [TestFixture()]
+    using NUnit.Framework;
+
+    /// <summary>
+    /// Test.
+    /// </summary>
+    [TestFixture]
     public class Test
     {
-        [Test()]
+        /// <summary>
+        /// Tests the case.
+        /// </summary>
+        [Test]
         public void TestCase()
         {
         }
     }
 }
-

@@ -1,10 +1,106 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Newtonsoft.Json.Linq;
-
-namespace Vindinium
+﻿namespace Vindinium
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using Newtonsoft.Json.Linq;
+
+        /// <summary>
+    /// Tile of the board.
+    /// </summary>
+    public enum Tile
+    {
+        /// <summary>
+        /// The first hero.
+        /// </summary>
+        Hero1,
+
+        /// <summary>
+        /// The second hero.
+        /// </summary>
+        Hero2,
+
+        /// <summary>
+        /// The third hero.
+        /// </summary>
+        Hero3,
+
+        /// <summary>
+        /// The fourth hero.
+        /// </summary>
+        Hero4,
+
+        /// <summary>
+        /// Some impassable wood.
+        /// </summary>
+        ImpassableWood,
+
+        /// <summary>
+        /// A free square.
+        /// </summary>
+        Free,
+
+        /// <summary>
+        /// A tavern.
+        /// </summary>
+        Tavern,
+
+        /// <summary>
+        /// A neutral gold mine.
+        /// </summary>
+        GoldMineNeutral,
+
+        /// <summary>
+        /// A gold mine belonging to the first hero.
+        /// </summary>
+        GoldMine1,
+
+        /// <summary>
+        /// A gold mine belonging to the second hero.
+        /// </summary>
+        GoldMine2,
+
+        /// <summary>
+        /// A gold mine belonging to the third hero.
+        /// </summary>
+        GoldMine3,
+
+        /// <summary>
+        /// A gold mine belonging to the fourth hero.
+        /// </summary>
+        GoldMine4
+    }
+
+    /// <summary>
+    /// Directions you can go in.
+    /// </summary>
+    public enum Direction
+    {
+        /// <summary>
+        /// Stay where you are.
+        /// </summary>
+        Stay,
+
+        /// <summary>
+        /// Go north.
+        /// </summary>
+        North,
+
+        /// <summary>
+        /// Go east.
+        /// </summary>
+        East,
+
+        /// <summary>
+        /// Go south.
+        /// </summary>
+        South,
+
+        /// <summary>
+        /// Go west.
+        /// </summary>
+        West
+    }
 
     /// <summary>
     /// The current game state.
@@ -12,6 +108,32 @@ namespace Vindinium
     public sealed class GameState
     {
         private Tile[][] _jaggedTiles;
+    
+        internal GameState(JObject gameResponse)
+        {
+            var playUrl = Util.JToken2T<string>(gameResponse, "playUrl");
+            if (playUrl != null)
+            {
+                this.PlayURL = new Uri(playUrl);
+            }
+
+            var viewUrl = Util.JToken2T<string>(gameResponse, "viewUrl");
+            if (viewUrl != null)
+            {
+                this.ViewURL = new Uri(viewUrl);
+            }
+
+            this.MyHero = new Hero(gameResponse["hero"] as JObject);
+            var game = (JObject)gameResponse["game"];
+            this.Heroes = (game["heroes"] as JArray ?? new JArray()).Select(x => new Hero(x as JObject)).ToList();
+            this.CurrentTurn = Util.JToken2T<int>(game, "turn");
+            this.MaxTurns = Util.JToken2T<int>(game, "maxTurns");
+            this.Finished = Util.JToken2T<bool>(game, "finished");
+            var board = game["board"] as JObject;
+            var size = Util.JToken2T<int>(board, "size");
+            var tiles = Util.JToken2T<string>(board, "tiles");
+            this.CreateBoard(size, tiles);
+        }
 
         /// <summary>
         /// Gets the x-height of the board.
@@ -28,7 +150,7 @@ namespace Vindinium
         public int Y { get; private set; }
 
         /// <summary>
-        /// Represents the user's own hero.
+        /// Gets the user's own hero.
         /// </summary>
         /// <value>My hero.</value>
         public Hero MyHero { get; private set; }
@@ -62,6 +184,10 @@ namespace Vindinium
         /// </summary>
         /// <value><c>true</c> if errored; otherwise, <c>false</c>.</value>
         public bool Errored { get; private set; }
+            
+        internal Uri ViewURL { get; private set; }
+
+        internal Uri PlayURL { get; private set; }
 
         /// <summary>
         /// Gets the tile with x and y coordinates specified.
@@ -72,62 +198,27 @@ namespace Vindinium
         /// <param name="y">The y coordinate.</param>
         public Tile GetTile(int x, int y)
         {
-            return _jaggedTiles[y][x];
+            return this._jaggedTiles[y][x];
         }
-
-        internal Uri ViewURL { get; private set; }
-
-        internal Uri PlayURL { get; private set; }
-
-
-
-        internal GameState(JObject gameResponse)
-        {
-
-
-            var playUrl = Util.JToken2T<string>(gameResponse, "playUrl");
-            if (playUrl != null)
-            {
-                PlayURL = new Uri(playUrl);
-            }
-            var viewUrl = Util.JToken2T<string>(gameResponse, "viewUrl");
-            if (viewUrl != null)
-            {
-                this.ViewURL = new Uri(viewUrl);
-            }
-
-            this.MyHero = new Hero(gameResponse["hero"] as JObject);
-            var game = (JObject)gameResponse["game"];
-            this.Heroes = (game["heroes"] as JArray ?? new JArray()).Select(x => new Hero(x as JObject)).ToList();
-            this.CurrentTurn = Util.JToken2T<int>(game, "turn");
-            this.MaxTurns = Util.JToken2T<int>(game, "maxTurns");
-            this.Finished = Util.JToken2T<bool>(game, "finished");
-            var board = game["board"] as JObject;
-            var size = Util.JToken2T<int>(board, "size");
-            var tiles = Util.JToken2T<string>(board, "tiles");
-            this.CreateBoard(size, tiles);
-        }
-
 
         private void CreateBoard(int size, string data)
         {
-
-            //check to see if the board list is already created, if it is, we just overwrite its values
-            if (_jaggedTiles == null || _jaggedTiles.Length != size)
+            // check to see if the board list is already created, if it is, we just overwrite its values
+            if (this._jaggedTiles == null || this._jaggedTiles.Length != size)
             {
-                _jaggedTiles = new Tile[(int)size][];
+                this._jaggedTiles = new Tile[(int)size][];
 
-                //need to initialize the lists within the list
+                // need to initialize the lists within the list
                 for (int i = 0; i < size; i++)
                 {
-                    _jaggedTiles[i] = new Tile[(int)size];
+                    this._jaggedTiles[i] = new Tile[(int)size];
                 }
             }
 
             this.X = size;
             this.Y = size;
 
-            //convert the string to the List<List<Tile>>
+            // convert the string to the List<List<Tile>>
             int x = 0;
             int y = 0;
             char[] charData = data.ToCharArray();
@@ -137,55 +228,56 @@ namespace Vindinium
                 switch (charData[i])
                 {
                     case '#':
-                        _jaggedTiles[x][y] = Tile.ImpassableWood;
+                        this._jaggedTiles[x][y] = Tile.ImpassableWood;
                         break;
                     case ' ':
-                        _jaggedTiles[x][y] = Tile.Free;
+                        this._jaggedTiles[x][y] = Tile.Free;
                         break;
                     case '@':
                         switch (charData[i + 1])
                         {
                             case '1':
-                                _jaggedTiles[x][y] = Tile.Hero1;
+                                this._jaggedTiles[x][y] = Tile.Hero1;
                                 break;
                             case '2':
-                                _jaggedTiles[x][y] = Tile.Hero2;
+                                this._jaggedTiles[x][y] = Tile.Hero2;
                                 break;
                             case '3':
-                                _jaggedTiles[x][y] = Tile.Hero3;
+                                this._jaggedTiles[x][y] = Tile.Hero3;
                                 break;
                             case '4':
-                                _jaggedTiles[x][y] = Tile.Hero4;
+                                this._jaggedTiles[x][y] = Tile.Hero4;
                                 break;
-
                         }
+
                         break;
                     case '[':
-                        _jaggedTiles[x][y] = Tile.Tavern;
+                        this._jaggedTiles[x][y] = Tile.Tavern;
                         break;
                     case '$':
                         switch (charData[i + 1])
                         {
                             case '-':
-                                _jaggedTiles[x][y] = Tile.GoldMineNeutral;
+                                this._jaggedTiles[x][y] = Tile.GoldMineNeutral;
                                 break;
                             case '1':
-                                _jaggedTiles[x][y] = Tile.GoldMine1;
+                                this._jaggedTiles[x][y] = Tile.GoldMine1;
                                 break;
                             case '2':
-                                _jaggedTiles[x][y] = Tile.GoldMine2;
+                                this._jaggedTiles[x][y] = Tile.GoldMine2;
                                 break;
                             case '3':
-                                _jaggedTiles[x][y] = Tile.GoldMine3;
+                                this._jaggedTiles[x][y] = Tile.GoldMine3;
                                 break;
                             case '4':
-                                _jaggedTiles[x][y] = Tile.GoldMine4;
+                                this._jaggedTiles[x][y] = Tile.GoldMine4;
                                 break;
                         }
+
                         break;
                 }
 
-                //time to increment x and y
+                // time to increment x and y
                 x++;
                 if (x == size)
                 {
@@ -197,92 +289,16 @@ namespace Vindinium
     }
 
     /// <summary>
-    /// Tile of the board.
-    /// </summary>
-    public enum Tile
-    {
-        /// <summary>
-        /// The first hero.
-        /// </summary>
-        Hero1,
-        /// <summary>
-        /// The second hero.
-        /// </summary>
-        Hero2,
-        /// <summary>
-        /// The third hero.
-        /// </summary>
-        Hero3,
-        /// <summary>
-        /// The fourth hero.
-        /// </summary>
-        Hero4,
-        /// <summary>
-        /// Some impassable wood.
-        /// </summary>
-        ImpassableWood,
-        /// <summary>
-        /// A free square.
-        /// </summary>
-        Free,
-        /// <summary>
-        /// A tavern.
-        /// </summary>
-        Tavern,
-        /// <summary>
-        /// A neutral gold mine.
-        /// </summary>
-        GoldMineNeutral,
-        /// <summary>
-        /// A gold mine belonging to the first hero.
-        /// </summary>
-        GoldMine1,
-        /// <summary>
-        /// A gold mine belonging to the second hero.
-        /// </summary>
-        GoldMine2,
-        /// <summary>
-        /// A gold mine belonging to the third hero.
-        /// </summary>
-        GoldMine3,
-        /// <summary>
-        /// A gold mine belonging to the fourth hero.
-        /// </summary>
-        GoldMine4
-    }
-
-    /// <summary>
-    /// Directions you can go in.
-    /// </summary>
-    public enum Direction
-    {
-        /// <summary>
-        /// Stay where you are.
-        /// </summary>
-        Stay,
-        /// <summary>
-        /// Go north.
-        /// </summary>
-        North,
-        /// <summary>
-        /// Go east.
-        /// </summary>
-        East,
-        /// <summary>
-        /// Go south.
-        /// </summary>
-        South,
-        /// <summary>
-        /// Go west.
-        /// </summary>
-        West
-    }
-
-    /// <summary>
     /// A Position.
     /// </summary>
     public sealed class Pos
     {
+        internal Pos(IDictionary<string, JToken> inp)
+        {
+            this.X = Util.JToken2T<int>(inp, "x");
+            this.Y = Util.JToken2T<int>(inp, "y");
+        }
+
         /// <summary>
         /// Gets the x-coordinate.
         /// </summary>
@@ -303,8 +319,9 @@ namespace Vindinium
             private set;
         }
 
-        /// <param name="p">P.</param>
-        public static implicit operator Tuple<int,int>(Pos p)
+        /// <param name="p">The position to convert.</param>
+        /// <summary>Implicit conversion between Pos and Tuple&lt;int, int&gt;. This is useful eg in F#</summary>
+        public static implicit operator Tuple<int, int>(Pos p)
         {
             if (p != null)
             {
@@ -315,19 +332,10 @@ namespace Vindinium
                 return null;
             }
         }
-
-
-        internal Pos(IDictionary<string, JToken> inp)
-        {
-            this.X = Util.JToken2T<int>(inp, "x");
-            this.Y = Util.JToken2T<int>(inp, "y");
-        }
-
-
     }
 
     /// <summary>
-    /// Hero.
+    /// Represents a Hero.
     /// </summary>
     public sealed class Hero
     {
@@ -426,7 +434,7 @@ namespace Vindinium
         }
 
         /// <summary>
-        /// Gets whether the hero has crashed or not.
+        /// Gets a value indicating whether the hero has crashed or not.
         /// </summary>
         /// <value>The crashed.</value>
         public bool Crashed
@@ -434,7 +442,5 @@ namespace Vindinium
             get;
             private set;
         }
-
     }
-
 }

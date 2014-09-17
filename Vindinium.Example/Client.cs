@@ -1,13 +1,14 @@
-﻿using System;
-using System.Configuration;
-using System.Collections.Generic;
-using log4net.Config;
-
-namespace Vindinium.Example
+﻿namespace Vindinium.Example
 {
-    static class Client
+    using System;
+    using System.Collections.Generic;
+    using System.Configuration;
+
+    using log4net.Config;
+
+    internal static class Client
     {
-        static void Main()
+        internal static void Main()
         {
             XmlConfigurator.Configure();
             ServerStuff.Start();
