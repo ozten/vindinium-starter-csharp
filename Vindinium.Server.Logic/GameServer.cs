@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Vindinium.Common;
@@ -16,7 +17,6 @@ namespace Vindinium.Game.Logic
         private const string OpenPath = "  ";
         private const string PlayerPrefix = "@";
         private GameResponse _response = new GameResponse();
-
 
         public GameResponse GameResponse
         {
@@ -63,6 +63,9 @@ namespace Vindinium.Game.Logic
 
         public string Start(string mapText)
         {
+            string gameId = Guid.NewGuid().ToString("N").Substring(0, 8);
+            string token = Guid.NewGuid().ToString("N").Substring(0, 8);
+
             var grid = new Grid {MapText = mapText};
             _response = new GameResponse
             {
@@ -70,15 +73,15 @@ namespace Vindinium.Game.Logic
                 {
                     Board = new Board {MapText = grid.MapText, Size = grid.Size},
                     Finished = false,
-                    Id = "the-game-id",
+                    Id = gameId,
                     MaxTurns = 20,
                     Players = new List<Hero>(),
                     Turn = 0
                 },
-                PlayUrl = "http://vindinium.org/api/the-game-id/the-token/play",
+                PlayUrl = string.Format("http://vindinium.org/api/{0}/{1}/play", gameId, token),
                 Self = CreateHero(mapText, grid, 1),
-                Token = "the-token",
-                ViewUrl = "http://vindinium.org/the-game-id"
+                Token = token,
+                ViewUrl = string.Format("http://vindinium.org/{0}", gameId)
             };
             for (int i = 0; i < 10; i++)
             {

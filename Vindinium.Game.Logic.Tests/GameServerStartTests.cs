@@ -24,6 +24,7 @@ namespace Vindinium.Game.Logic.Tests
         private GameResponse _gameResponse;
         private Common.DataStructures.Game _game;
 
+
         private Dictionary<string, int> GetTokens()
         {
             var tokens = new Dictionary<string, int>();
@@ -122,6 +123,24 @@ namespace Vindinium.Game.Logic.Tests
                 string mapToken = grid[player.Pos];
                 Assert.That(mapToken, Is.EqualTo(playerToken));
             }
+        }
+
+        [Test]
+        public void EachGameHasADifferentGameId()
+        {
+            var server = new GameServer();
+            var game1 = server.StartTraining(3000).JsonToObject<GameResponse>();
+            var game2 = server.StartTraining(3000).JsonToObject<GameResponse>();
+            Assert.That(game1.Game.Id, Is.Not.EqualTo(game2.Game.Id));
+        }
+
+        [Test]
+        public void EachGameHasADifferentToken()
+        {
+            var server = new GameServer();
+            var game1 = server.StartTraining(3000).JsonToObject<GameResponse>();
+            var game2 = server.StartTraining(3000).JsonToObject<GameResponse>();
+            Assert.That(game1.Token, Is.Not.EqualTo(game2.Token));
         }
 
         [Test]
