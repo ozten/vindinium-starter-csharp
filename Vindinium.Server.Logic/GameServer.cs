@@ -12,10 +12,8 @@ namespace Vindinium.Game.Logic
     public class GameServer : IGameServerProxy
     {
         private const int FullLife = 100;
-        private const int HealingAmount = 50;
         private const int HealingCost = 2;
         private const int AttackDamage = 20;
-        private const int MinimumThirst = 1;
         private GameResponse _response = new GameResponse();
 
         public GameResponse GameResponse
@@ -33,7 +31,8 @@ namespace Vindinium.Game.Logic
             var map = new Grid {MapText = _response.Game.Board.MapText};
             lock (map.SynchronizationRoot)
             {
-                Hero player = _response.Game.Players.First(p => p.Id == _response.Self.Id);
+                List<Hero> players = _response.Game.Players;
+                Hero player = players.First(p => p.Id == _response.Self.Id);
                 Pos playerPos = player.Pos;
                 Pos targetPos = playerPos + GetTargetOffset(direction);
                 KeepPositionOnMap(targetPos, _response.Game.Board.Size);
@@ -42,11 +41,11 @@ namespace Vindinium.Game.Logic
                 PlayerMoving(playerPos, map, targetToken, targetPos, player);
                 PlayerMoved(direction, targetToken, player, map);
                 MoveDeadPlayers(map);
-                MakePlayerThirsty(player);
+                player.GetThirsty();
+                players.RaiseTheDead();
                 ApplyMapChanges(map);
-                ReviveDeadPlayers();
-                IncrimentGold(player);
-                 _response.Self = _response.Game.Players.First(p => p.Id == 1);
+                player.GetWealthy();
+                _response.Self = player;
                 return _response.ToJson();
             }
         }
@@ -96,24 +95,6 @@ namespace Vindinium.Game.Logic
         public void ChangeMap(string mapText)
         {
             ApplyMapChanges(new Grid {MapText = mapText});
-        }
-
-        private void ReviveDeadPlayers()
-        {
-            _response.Game.Players.Where(p => p.IsDead()).ToList().ForEach(p => p.Life = FullLife);
-        }
-
-        private void IncrimentGold(Hero player)
-        {
-            player.Gold += player.MineCount;
-        }
-
-        private void MakePlayerThirsty(Hero player)
-        {
-            if (player.Life > MinimumThirst)
-            {
-                player.Life--;
-            }
         }
 
         private void MoveDeadPlayers(Grid map)
@@ -186,11 +167,7 @@ namespace Vindinium.Game.Logic
             {
                 int enemyId = int.Parse(targetToken.Substring(1));
                 Hero enemy = _response.Game.Players.First(p => p.Id == enemyId);
-                enemy.Life -= AttackDamage;
-                if (enemy.IsDead())
-                {
-                    map.ForEach(p => { if (map[p] == enemy.MineToken()) map[p] = player.MineToken(); });
-                }
+                player.Attack(enemy, map);
             }
         }
 
@@ -208,7 +185,7 @@ namespace Vindinium.Game.Logic
             }
             else if (targetToken == TokenHelper.Tavern)
             {
-                StepIntoTavern();
+                _response.Self.Purchase(HealingCost, hero => hero.Heal());
             }
             else if (TokenHelper.IsMine(targetToken))
             {
@@ -245,11 +222,6 @@ namespace Vindinium.Game.Logic
                     map[targetPos] = player.MineToken();
                 }
             }
-        }
-
-        private void StepIntoTavern()
-        {
-            _response.Self.Purchase(HealingCost, hero => hero.Heal(HealingAmount));
         }
 
         private Pos GetTargetOffset(Direction direction)
