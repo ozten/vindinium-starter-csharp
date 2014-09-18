@@ -1,4 +1,5 @@
-﻿using Vindinium.Common.DataStructures;
+﻿using System;
+using Vindinium.Common.DataStructures;
 
 namespace Vindinium.Game.Logic
 {
@@ -27,6 +28,19 @@ namespace Vindinium.Game.Logic
         internal static bool IsLiving(this Hero player)
         {
             return !player.IsDead();
+        }
+
+        internal static void Heal(this Hero player, int amount)
+        {
+            player.Life += amount;
+            if (player.Life > 100) player.Life = 100;
+        }
+
+        internal static void Purchase(this Hero player, int amount, Action<Hero> purchased)
+        {
+            if (player.Gold < amount) return;
+            player.Gold -= amount;
+            purchased(player);
         }
     }
 }

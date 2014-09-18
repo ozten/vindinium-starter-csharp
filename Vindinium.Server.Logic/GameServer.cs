@@ -249,16 +249,7 @@ namespace Vindinium.Game.Logic
 
         private void StepIntoTavern()
         {
-            if (_response.Self.Gold >= HealingCost)
-            {
-                _response.Self.Life += HealingAmount;
-                _response.Game.Players.First(p => p.Id == _response.Self.Id).Gold
-                    -= HealingCost;
-                if (_response.Self.Life > FullLife)
-                {
-                    _response.Self.Life = FullLife;
-                }
-            }
+            _response.Self.Purchase(HealingCost, hero => hero.Heal(HealingAmount));
         }
 
         private Pos GetTargetOffset(Direction direction)
