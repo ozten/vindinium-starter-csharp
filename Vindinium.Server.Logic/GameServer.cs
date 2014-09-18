@@ -11,12 +11,6 @@ namespace Vindinium.Game.Logic
 {
     public class GameServer : IGameServerProxy
     {
-        private const string Tavern = "[]";
-        private const string MinePrefix = "$";
-        private const string NeutralMine = "$-";
-        private const string OpenPath = "  ";
-        private const string Obstruction = "##";
-        private const string PlayerPrefix = "@";
         private GameResponse _response = new GameResponse();
 
         public GameResponse GameResponse
@@ -47,9 +41,9 @@ namespace Vindinium.Game.Logic
                 ApplyMapChanges(map);
                 ReviveDeadPlayers();
                 IncrimentGold(player);
+                 _response.Self = _response.Game.Players.First(p => p.Id == 1);
+                return _response.ToJson();
             }
-
-            return _response.ToJson();
         }
 
         public string StartTraining(uint turns)
@@ -80,15 +74,15 @@ namespace Vindinium.Game.Logic
                     Turn = 0
                 },
                 PlayUrl = string.Format("http://vindinium.org/api/{0}/{1}/play", gameId, token),
-                Self = CreateHero(mapText, grid, 1),
+                Self = CreateHero(grid, 1),
                 Token = token,
                 ViewUrl = string.Format("http://vindinium.org/{0}", gameId)
             };
             for (int i = 0; i < 10; i++)
             {
-                if (grid.PositionOf(string.Format("{0}{1}", PlayerPrefix, i)) != null)
+                if (grid.PositionOf(TokenHelper.Player(i)) != null)
                 {
-                    _response.Game.Players.Add(CreateHero(mapText, grid, i));
+                    _response.Game.Players.Add(CreateHero(grid, i));
                 }
             }
             return _response.ToJson();
@@ -107,7 +101,6 @@ namespace Vindinium.Game.Logic
         private void IncrimentGold(Hero player)
         {
             player.Gold += player.MineCount;
-            _response.Self = _response.Game.Players.First(p => p.Id == 1);
         }
 
         private void MakePlayerThirsty(Hero player)
@@ -125,16 +118,15 @@ namespace Vindinium.Game.Logic
             {
                 foreach (Hero deadPlayer in deadPlayers)
                 {
-                    string playerMine = string.Format("{0}{1}", MinePrefix, deadPlayer.Id);
-                    ReplaceMapToken(map, playerMine, NeutralMine);
+                    ReplaceMapToken(map, deadPlayer.MineToken(), TokenHelper.NeutralMine);
                     _response.Game.Players.Where(p => p.Pos == deadPlayer.SpawnPos).ToList().ForEach(p => p.Life = 0);
-                    map[deadPlayer.Pos] = OpenPath;
+                    map[deadPlayer.Pos] = TokenHelper.OpenPath;
                     deadPlayer.Pos = deadPlayer.SpawnPos;
                 }
                 deadPlayers = _response.Game.Players.Where(p => p.Life <= 0 && p.Pos != p.SpawnPos).ToArray();
             } while (deadPlayers.Any());
 
-            _response.Game.Players.ForEach(p => { map[p.Pos] = string.Format("{0}{1}", PlayerPrefix, p.Id); });
+            _response.Game.Players.ForEach(p => map[p.Pos] = p.PlayerToken());
         }
 
         private static void ReplaceMapToken(Grid map, string oldToken, string newToken)
@@ -150,110 +142,70 @@ namespace Vindinium.Game.Logic
 
         private void ApplyMapChanges(Grid map)
         {
-            _response.Game.Players.ForEach(p => RefreshHero(p.Id, map));
+            _response.Game.Players.ForEach(p => UpdateHeroFromMap(p, map));
             _response.Game.Board.MapText = map.MapText;
         }
 
-        private void RefreshHero(int playerId, Grid grid)
+        private void UpdateHeroFromMap(Hero player, Grid grid)
         {
-            Hero player = _response.Game.Players.First(p => p.Id == playerId);
-            string heroToken = string.Format("{0}{1}", PlayerPrefix, playerId);
-            string mineToken = string.Format("{0}{1}", MinePrefix, playerId);
-            player.Pos = grid.PositionOf(heroToken);
-            player.MineCount = Regex.Matches(grid.MapText, Regex.Escape(mineToken)).Count;
+            player.Pos = grid.PositionOf(player.PlayerToken());
+            player.MineCount = Regex.Matches(grid.MapText, Regex.Escape(player.MineToken())).Count;
         }
 
         private void Start()
         {
-            Start(GenerateMap());
+            Start(MapMaker.GenerateMap());
         }
 
-        private string GenerateMap()
+
+        private Hero CreateHero(Grid grid, int playerId)
         {
-            var grid = new Grid();
-            int seed = (int) DateTime.Now.Ticks%int.MaxValue;
-            var random = new Random(seed);
-            int quarter = random.Next(5, 14);
-            int size = quarter*2;
-            grid.MapText = "".PadLeft(size*size*2, ' ');
-            AddToken(grid, Tavern, random);
-            AddToken(grid, string.Format("{0}-", PlayerPrefix), random);
-            for (int i = 0; i < 4; i++)
-            {
-                AddToken(grid, NeutralMine, random);
-            }
-            for (int i = 0; i < 8; i++)
-            {
-                AddToken(grid, Obstruction, random);
-            }
-
-            grid.MakeSymmetric();
-            return grid.MapText;
-        }
-
-        private void AddToken(Grid grid, string token, Random random)
-        {
-            int max = grid.Size/2;
-
-            var pos = new Pos {X = random.Next(1, max), Y = random.Next(1, max)};
-            while (grid[pos] != OpenPath)
-            {
-                pos.X = random.Next(1, max);
-                pos.Y = random.Next(1, max);
-            }
-            grid[pos] = token;
-        }
-
-        private static Hero CreateHero(string mapText, Grid grid, int playerId)
-        {
-            string heroToken = string.Format("{0}{1}", PlayerPrefix, playerId);
-            string mineToken = string.Format("{0}{1}", MinePrefix, playerId);
-            Pos position = grid.PositionOf(heroToken);
-            int mineCount = Regex.Matches(mapText, Regex.Escape(mineToken)).Count;
-
-            return new Hero
+            var hero = new Hero
             {
                 Id = playerId,
                 Name = playerId == 1 ? "GrimTrick" : "random",
                 UserId = playerId == 1 ? "8aq2nq2b" : null,
                 Elo = 1213,
-                Pos = position,
                 Life = 100,
                 Gold = 0,
-                MineCount = mineCount,
-                SpawnPos = position,
                 Crashed = false
             };
+            UpdateHeroFromMap(hero, grid);
+            hero.SpawnPos = hero.Pos;
+            return hero;
         }
 
         private void PlayerMoved(Direction direction, string targetToken, Hero player, Grid map)
         {
-            string selfTokene = string.Format("{0}{1}", PlayerPrefix, player.Id);
-            if (targetToken.StartsWith(PlayerPrefix) && direction != Direction.Stay && targetToken != selfTokene)
+            if (SteppedIntoEnemy(player, direction, targetToken))
             {
                 int enemyId = int.Parse(targetToken.Substring(1));
                 Hero enemy = _response.Game.Players.First(p => p.Id == enemyId);
                 enemy.Life -= 20;
-                string selfMine = string.Format("{0}{1}", MinePrefix, player.Id);
-                string enemyMine = string.Format("{0}{1}", MinePrefix, enemy.Id);
                 if (enemy.Life <= 0)
                 {
-                    map.ForEach(p => { if (map[p] == enemyMine) map[p] = selfMine; });
+                    map.ForEach(p => { if (map[p] == enemy.MineToken()) map[p] = player.MineToken(); });
                 }
             }
         }
 
+        private static bool SteppedIntoEnemy(Hero player, Direction direction, string targetToken)
+        {
+            return TokenHelper.IsPlayer(targetToken) && direction != Direction.Stay &&
+                   targetToken != player.PlayerToken();
+        }
+
         private void PlayerMoving(Pos playerPos, Grid map, string targetToken, Pos targetPos, Hero player)
         {
-            if (targetToken == OpenPath)
+            if (targetToken == TokenHelper.OpenPath)
             {
                 StepOntoPath(targetToken, targetPos, playerPos, map);
             }
-            else if (targetToken == Tavern)
+            else if (targetToken == TokenHelper.Tavern)
             {
                 StepIntoTavern();
             }
-            else if (targetToken.StartsWith(MinePrefix))
+            else if (TokenHelper.IsMine(targetToken))
             {
                 StepIntoMine(map, targetPos, targetToken, player);
             }
@@ -272,7 +224,7 @@ namespace Vindinium.Game.Logic
             string playerToken = map[playerPos];
             map[targetPos] = playerToken;
             map[playerPos] = targetToken;
-            _response.Game.Players.Where(p => string.Format("{0}{1}", PlayerPrefix, p.Id) == playerToken)
+            _response.Game.Players.Where(p => p.PlayerToken() == playerToken)
                 .AsParallel()
                 .ForAll(
                     p => p.Pos = targetPos);
@@ -280,13 +232,12 @@ namespace Vindinium.Game.Logic
 
         private void StepIntoMine(Grid map, Pos targetPos, string targetToken, Hero player)
         {
-            string playerMine = string.Format("{0}{1}", MinePrefix, player.Id);
-            if (targetToken != playerMine)
+            if (targetToken != player.MineToken())
             {
                 player.Life -= 20;
                 if (player.Life > 0)
                 {
-                    map[targetPos] = playerMine;
+                    map[targetPos] = player.MineToken();
                 }
             }
         }

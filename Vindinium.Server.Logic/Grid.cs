@@ -121,10 +121,10 @@ namespace Vindinium.Game.Logic
 
                         if (token.StartsWith("@"))
                         {
-                            _grid[x, y] = PlayerToken(1);
-                            _grid[x, max - y] = PlayerToken(2);
-                            _grid[max - x, y] = PlayerToken(3);
-                            _grid[max - x, max - y] = PlayerToken(4);
+                            _grid[x, y] = TokenHelper.Player(1);
+                            _grid[x, max - y] = TokenHelper.Player(2);
+                            _grid[max - x, y] = TokenHelper.Player(3);
+                            _grid[max - x, max - y] = TokenHelper.Player(4);
                         }
                         else
                         {
@@ -135,11 +135,6 @@ namespace Vindinium.Game.Logic
                     }
                 }
             }
-        }
-
-        private static string PlayerToken(int id)
-        {
-            return string.Format("@{0}", id);
         }
     }
 }
