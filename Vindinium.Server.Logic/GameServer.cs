@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Vindinium.Common;
 using Vindinium.Common.DataStructures;
 using Vindinium.Common.Entities;
@@ -28,14 +27,15 @@ namespace Vindinium.Game.Logic
 
         public string Play(string gameId, string token, Direction direction)
         {
-            var map = new Grid {MapText = _response.Game.Board.MapText};
+            Board board = _response.Game.Board;
+            var map = new Grid {MapText = board.MapText};
             lock (map.SynchronizationRoot)
             {
                 List<Hero> players = _response.Game.Players;
                 Hero player = players.First(p => p.Id == _response.Self.Id);
                 Pos playerPos = player.Pos;
                 Pos targetPos = playerPos + GetTargetOffset(direction);
-                KeepPositionOnMap(targetPos, _response.Game.Board.Size);
+                KeepPositionOnMap(targetPos, board.Size);
                 string targetToken = map[targetPos];
 
                 PlayerMoving(playerPos, map, targetToken, targetPos, player);
@@ -43,7 +43,8 @@ namespace Vindinium.Game.Logic
                 MoveDeadPlayers(map);
                 player.GetThirsty();
                 players.RaiseTheDead();
-                ApplyMapChanges(map);
+                players.ForEach(p => p.AssignPosAndMinesFromMap(map));
+                board.MapText = map.MapText;
                 player.GetWealthy();
                 _response.Self = player;
                 return _response.ToJson();
@@ -94,7 +95,9 @@ namespace Vindinium.Game.Logic
 
         public void ChangeMap(string mapText)
         {
-            ApplyMapChanges(new Grid {MapText = mapText});
+            var map = new Grid {MapText = mapText};
+            _response.Game.Players.ForEach(p => p.AssignPosAndMinesFromMap(map));
+            _response.Game.Board.MapText = map.MapText;
         }
 
         private void MoveDeadPlayers(Grid map)
@@ -126,18 +129,6 @@ namespace Vindinium.Game.Logic
             });
         }
 
-        private void ApplyMapChanges(Grid map)
-        {
-            _response.Game.Players.ForEach(p => UpdateHeroFromMap(p, map));
-            _response.Game.Board.MapText = map.MapText;
-        }
-
-        private void UpdateHeroFromMap(Hero player, Grid grid)
-        {
-            player.Pos = grid.PositionOf(player.PlayerToken());
-            player.MineCount = Regex.Matches(grid.MapText, Regex.Escape(player.MineToken())).Count;
-        }
-
         private void Start()
         {
             Start(MapMaker.GenerateMap());
@@ -156,7 +147,7 @@ namespace Vindinium.Game.Logic
                 Gold = 0,
                 Crashed = false
             };
-            UpdateHeroFromMap(hero, grid);
+            hero.AssignPosAndMinesFromMap(grid);
             hero.SpawnPos = hero.Pos;
             return hero;
         }

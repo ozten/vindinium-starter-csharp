@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using System.Text.RegularExpressions;
 using Vindinium.Common.DataStructures;
 
 namespace Vindinium.Game.Logic
@@ -135,6 +136,11 @@ namespace Vindinium.Game.Logic
                     }
                 }
             }
+        }
+
+        internal int TokenCount(string token)
+        {
+            return Regex.Matches(MapText, Regex.Escape(token)).Count;
         }
     }
 }

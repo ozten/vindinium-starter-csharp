@@ -77,5 +77,11 @@ namespace Vindinium.Game.Logic
                 map.ForEach(p => { if (map[p] == enemy.MineToken()) map[p] = player.MineToken(); });
             }
         }
+
+        internal static void AssignPosAndMinesFromMap(this Hero player, Grid map)
+        {
+            player.Pos = map.PositionOf(player.PlayerToken());
+            player.MineCount = map.TokenCount(player.MineToken());
+        }
     }
 }
