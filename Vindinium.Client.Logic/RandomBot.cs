@@ -7,7 +7,8 @@ namespace Vindinium.Client.Logic
     {
         public Direction DetermineNextMove()
         {
-            return (Direction) (new Random().Next(0, 6));
+            var values = (Direction[]) Enum.GetValues(typeof (Direction));
+            return values[new Random().Next(0, values.Length)];
         }
     }
 }
