@@ -13,6 +13,7 @@ namespace Vindinium.Game.Logic
         private const int FullLife = 100;
         private const int HealingCost = 2;
         private const int AttackDamage = 20;
+        private IApiResponse _apiResponse;
         private GameResponse _response = new GameResponse();
 
         public GameResponse GameResponse
@@ -22,11 +23,21 @@ namespace Vindinium.Game.Logic
 
         public IApiResponse ApiResponse
         {
-            get { return null; }
+            get { return _apiResponse; }
         }
 
         public string Play(string gameId, string token, Direction direction)
         {
+            if (token != _response.Token)
+            {
+                _apiResponse = Common.Entities.ApiResponse.GetError("Unable to find the token in your game");
+                return ApiResponse.ErrorMessage;
+            }
+            if (gameId != _response.Game.Id)
+            {
+                _apiResponse = Common.Entities.ApiResponse.GetError("Unable to find the game");
+                return ApiResponse.ErrorMessage;
+            }
             Board board = _response.Game.Board;
             var map = new Grid {MapText = board.MapText};
             lock (map.SynchronizationRoot)
@@ -47,7 +58,8 @@ namespace Vindinium.Game.Logic
                 board.MapText = map.MapText;
                 player.GetWealthy();
                 _response.Self = player;
-                return _response.ToJson();
+                _apiResponse = new ApiResponse(_response.ToJson());
+                return _apiResponse.Text;
             }
         }
 

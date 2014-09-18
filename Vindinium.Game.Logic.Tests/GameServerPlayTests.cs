@@ -22,14 +22,26 @@ namespace Vindinium.Game.Logic.Tests
             return _server.Start(mapText).JsonToObject<GameResponse>();
         }
 
-        private GameResponse Play(string token, Direction direction)
+        private GameResponse Play(string gameId, string token, Direction direction)
         {
-            return _server.Play("", token, direction).JsonToObject<GameResponse>();
+            string text = _server.Play(gameId, token, direction);
+            Assert.That(_server.ApiResponse.HasError, Is.False, _server.ApiResponse.ErrorMessage);
+            Assert.That(_server.ApiResponse.ErrorMessage, Is.Null);
+            Assert.That(_server.ApiResponse.Text, Is.EqualTo(text));
+            return text.JsonToObject<GameResponse>();
         }
 
-        private void AssertPlayHasMapText(string token, Direction direction, string mapText)
+        private void AssertPlayError(string gameId, string token, Direction direction, string message)
         {
-            var response = _server.Play("", token, direction).JsonToObject<GameResponse>();
+            string text = _server.Play(gameId, token, direction);
+            Assert.That(_server.ApiResponse.HasError, Is.True);
+            Assert.That(_server.ApiResponse.ErrorMessage, Is.EqualTo(message));
+            Assert.That(text, Is.EqualTo(message));
+        }
+
+        private void AssertPlayHasMapText(string gameId, string token, Direction direction, string mapText)
+        {
+            var response = _server.Play(gameId, token, direction).JsonToObject<GameResponse>();
             Assert.That(response.Game.Board.MapText, Is.EqualTo(mapText));
         }
 
@@ -39,7 +51,7 @@ namespace Vindinium.Game.Logic.Tests
             GameResponse response = Start("@2$2@1$2");
 
             for (int i = 0; i < 5; i++)
-                response = Play(response.Token, Direction.North);
+                response = Play(response.Game.Id, response.Token, Direction.North);
 
             Hero player2 = response.Game.Players.First(p => p.Id == 2);
             Assert.That(player2.Life, Is.EqualTo(100));
@@ -49,14 +61,29 @@ namespace Vindinium.Game.Logic.Tests
         }
 
         [Test]
+        public void PlayWithWrongGame()
+        {
+            GameResponse response = Start("  ##@1##");
+            AssertPlayError(response.Game.Id + "bad", response.Token, Direction.North, "Unable to find the game");
+        }
+
+        [Test]
+        public void PlayWithWrongToken()
+        {
+            GameResponse response = Start("  ##@1##");
+            AssertPlayError(response.Game.Id, response.Token + "bad", Direction.North,
+                "Unable to find the token in your game");
+        }
+
+        [Test]
         public void SpawnOnDeath()
         {
             GameResponse response = Start("$-    @1");
             for (int i = 0; i < 80; i++)
-                Play(response.Token, Direction.Stay);
-            response = Play(response.Token, Direction.West);
+                Play(response.Game.Id, response.Token, Direction.Stay);
+            response = Play(response.Game.Id, response.Token, Direction.West);
             Assert.That(response.Self.Life, Is.EqualTo(19));
-            response = Play(response.Token, Direction.North);
+            response = Play(response.Game.Id, response.Token, Direction.North);
 
             Assert.That(response.Self.Life, Is.EqualTo(100));
             Assert.That(response.Game.Board.MapText, Is.EqualTo("$-    @1"));
@@ -66,15 +93,15 @@ namespace Vindinium.Game.Logic.Tests
         public void SpawnOnPlayer()
         {
             GameResponse response = Start("@1@2@3@4");
-            response = Play(response.Token, Direction.Stay);
+            response = Play(response.Game.Id, response.Token, Direction.Stay);
             _server.ChangeMap("@2@3@4@1"); // pretend players moved to each others spawns
-            response = Play(response.Token, Direction.West);
+            response = Play(response.Game.Id, response.Token, Direction.West);
             Assert.That(response.Game.Board.MapText, Is.EqualTo("@2@3@4@1"));
-            response = Play(response.Token, Direction.West);
-            response = Play(response.Token, Direction.West);
-            response = Play(response.Token, Direction.West);
+            response = Play(response.Game.Id, response.Token, Direction.West);
+            response = Play(response.Game.Id, response.Token, Direction.West);
+            response = Play(response.Game.Id, response.Token, Direction.West);
             Assert.That(response.Game.Players.First(p => p.Id == 4).Life, Is.EqualTo(20));
-            response = Play(response.Token, Direction.West);
+            response = Play(response.Game.Id, response.Token, Direction.West);
 
 
             Assert.That(response.Game.Board.MapText, Is.EqualTo("@1@2@3@4"));
@@ -84,7 +111,7 @@ namespace Vindinium.Game.Logic.Tests
         public void Steps()
         {
             GameResponse response = Start("  ##@1##");
-            response = Play(response.Token, Direction.North);
+            response = Play(response.Game.Id, response.Token, Direction.North);
             Assert.That(response.Game.Board.MapText, Is.EqualTo("@1##  ##"));
         }
 
@@ -92,7 +119,7 @@ namespace Vindinium.Game.Logic.Tests
         public void StepsIntoGoldMine()
         {
             GameResponse response = Start("$-  @1  ");
-            response = Play(response.Token, Direction.North);
+            response = Play(response.Game.Id, response.Token, Direction.North);
             Assert.That(response.Game.Board.MapText, Is.EqualTo("$1  @1  "));
             Assert.That(response.Self.MineCount, Is.EqualTo(1));
         }
@@ -101,8 +128,8 @@ namespace Vindinium.Game.Logic.Tests
         public void StepsIntoGoldMineAndDies()
         {
             GameResponse response = Start("$-  @1  ");
-            for (int i = 0; i < 100; i++) Play(response.Token, Direction.Stay);
-            response = Play(response.Token, Direction.North);
+            for (int i = 0; i < 100; i++) Play(response.Game.Id, response.Token, Direction.Stay);
+            response = Play(response.Game.Id, response.Token, Direction.North);
             Assert.That(response.Game.Board.MapText, Is.EqualTo("$-  @1  "));
             Assert.That(response.Game.Players[0].Life, Is.EqualTo(100));
             Assert.That(response.Self.MineCount, Is.EqualTo(0));
@@ -112,7 +139,7 @@ namespace Vindinium.Game.Logic.Tests
         public void StepsIntoGoldMineBelongsToSelf()
         {
             GameResponse response = Start("$1  @1  ");
-            response = Play(response.Token, Direction.North);
+            response = Play(response.Game.Id, response.Token, Direction.North);
             Assert.That(response.Game.Board.MapText, Is.EqualTo("$1  @1  "));
             Assert.That(response.Self.MineCount, Is.EqualTo(1));
             Assert.That(response.Self.Life, Is.EqualTo(99));
@@ -122,7 +149,7 @@ namespace Vindinium.Game.Logic.Tests
         public void StepsIntoGoldMineOfEnemy()
         {
             GameResponse response = Start("$4@4@1  ");
-            response = Play(response.Token, Direction.North);
+            response = Play(response.Game.Id, response.Token, Direction.North);
             Assert.That(response.Game.Board.MapText, Is.EqualTo("$1@4@1  "));
             Assert.That(response.Self.MineCount, Is.EqualTo(1));
             Assert.That(response.Self.Life, Is.EqualTo(79));
@@ -133,7 +160,7 @@ namespace Vindinium.Game.Logic.Tests
         public void StepsIntoPlayerAndDamages()
         {
             GameResponse response = Start("@2  @1  ");
-            response = Play(response.Token, Direction.North);
+            response = Play(response.Game.Id, response.Token, Direction.North);
             Assert.That(response.Game.Board.MapText, Is.EqualTo("@2  @1  "));
             Assert.That(response.Game.Players.Where(p => p.Id == 2), Has.All.Property("Life").EqualTo(80));
             Assert.That(response.Self.Life, Is.EqualTo(99));
@@ -145,13 +172,13 @@ namespace Vindinium.Game.Logic.Tests
             GameResponse response = Start("[]$1@1  ");
             for (int i = 0; i < 51; i++)
             {
-                response = Play(response.Token, Direction.Stay);
+                response = Play(response.Game.Id, response.Token, Direction.Stay);
             }
             int life = response.Self.Life;
 
             Assert.That(response.Self.Life, Is.LessThan(50));
             int gold = response.Self.Gold;
-            response = Play(response.Token, Direction.North);
+            response = Play(response.Game.Id, response.Token, Direction.North);
             Assert.That(response.Game.Board.MapText, Is.EqualTo("[]$1@1  "));
             Assert.That(response.Self.Gold, Is.EqualTo((gold + response.Self.MineCount) - 2));
             Assert.That(response.Self.Life, Is.EqualTo((life + 50) - 1));
@@ -161,12 +188,12 @@ namespace Vindinium.Game.Logic.Tests
         public void StepsIntoTavernOverdrinking()
         {
             GameResponse response = Start("[]$1@1  ");
-            response = Play(response.Token, Direction.Stay);
-            response = Play(response.Token, Direction.Stay);
+            response = Play(response.Game.Id, response.Token, Direction.Stay);
+            response = Play(response.Game.Id, response.Token, Direction.Stay);
 
             int gold = response.Self.Gold;
 
-            response = Play(response.Token, Direction.North);
+            response = Play(response.Game.Id, response.Token, Direction.North);
             Assert.That(response.Self.Life, Is.EqualTo(99));
             Assert.That(response.Self.Gold, Is.EqualTo((gold + response.Self.MineCount) - 2));
         }
@@ -175,8 +202,8 @@ namespace Vindinium.Game.Logic.Tests
         public void StepsIntoTavernWithoutPayment()
         {
             GameResponse response = Start("[]  @1  ");
-            response = Play(response.Token, Direction.Stay);
-            response = Play(response.Token, Direction.North);
+            response = Play(response.Game.Id, response.Token, Direction.Stay);
+            response = Play(response.Game.Id, response.Token, Direction.North);
 
             Assert.That(response.Self.Life, Is.EqualTo(98));
             Assert.That(response.Self.Gold, Is.EqualTo(0));
@@ -187,23 +214,24 @@ namespace Vindinium.Game.Logic.Tests
         {
             GameResponse response = Start("@1      ");
             string token = response.Token;
+            string gameId = response.Game.Id;
 
-            AssertPlayHasMapText(token, Direction.North, "@1      ");
-            AssertPlayHasMapText(token, Direction.East, "  @1    ");
-            AssertPlayHasMapText(token, Direction.East, "  @1    ");
-            AssertPlayHasMapText(token, Direction.South, "      @1");
-            AssertPlayHasMapText(token, Direction.South, "      @1");
-            AssertPlayHasMapText(token, Direction.West, "    @1  ");
-            AssertPlayHasMapText(token, Direction.West, "    @1  ");
-            AssertPlayHasMapText(token, Direction.North, "@1      ");
-            AssertPlayHasMapText(token, Direction.North, "@1      ");
+            AssertPlayHasMapText(gameId, token, Direction.North, "@1      ");
+            AssertPlayHasMapText(gameId, token, Direction.East, "  @1    ");
+            AssertPlayHasMapText(gameId, token, Direction.East, "  @1    ");
+            AssertPlayHasMapText(gameId, token, Direction.South, "      @1");
+            AssertPlayHasMapText(gameId, token, Direction.South, "      @1");
+            AssertPlayHasMapText(gameId, token, Direction.West, "    @1  ");
+            AssertPlayHasMapText(gameId, token, Direction.West, "    @1  ");
+            AssertPlayHasMapText(gameId, token, Direction.North, "@1      ");
+            AssertPlayHasMapText(gameId, token, Direction.North, "@1      ");
         }
 
         [Test]
         public void StepsOverTree()
         {
             GameResponse response = Start("##  @1  ");
-            response = Play(response.Token, Direction.North);
+            response = Play(response.Game.Id, response.Token, Direction.North);
             Assert.That(response.Game.Board.MapText, Is.EqualTo("##  @1  "));
         }
 
@@ -213,7 +241,7 @@ namespace Vindinium.Game.Logic.Tests
             GameResponse response = Start("  ##@1##");
 
             for (int i = 0; i < 100; i++)
-                response = Play(response.Token, Direction.North);
+                response = Play(response.Game.Id, response.Token, Direction.North);
             Assert.That(response.Self.Life, Is.EqualTo(1));
         }
 
@@ -221,7 +249,7 @@ namespace Vindinium.Game.Logic.Tests
         public void ThirstIsApplied()
         {
             GameResponse response = Start("  ##@1##");
-            response = Play(response.Token, Direction.North);
+            response = Play(response.Game.Id, response.Token, Direction.North);
             Assert.That(response.Self.Life, Is.EqualTo(99));
             Assert.That(response.Game.Players.First(p => p.Id == response.Self.Id).Life, Is.EqualTo(99));
         }
