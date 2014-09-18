@@ -11,6 +11,11 @@ namespace Vindinium.Game.Logic
 {
     public class GameServer : IGameServerProxy
     {
+        private const int FullLife = 100;
+        private const int HealingAmount = 50;
+        private const int HealingCost = 2;
+        private const int AttackDamage = 20;
+        private const int MinimumThirst = 1;
         private GameResponse _response = new GameResponse();
 
         public GameResponse GameResponse
@@ -95,7 +100,7 @@ namespace Vindinium.Game.Logic
 
         private void ReviveDeadPlayers()
         {
-            _response.Game.Players.Where(p => p.Life <= 0).ToList().ForEach(p => p.Life = 100);
+            _response.Game.Players.Where(p => p.Life <= 0).ToList().ForEach(p => p.Life = FullLife);
         }
 
         private void IncrimentGold(Hero player)
@@ -105,7 +110,7 @@ namespace Vindinium.Game.Logic
 
         private void MakePlayerThirsty(Hero player)
         {
-            if (player.Life > 1)
+            if (player.Life > MinimumThirst)
             {
                 player.Life--;
             }
@@ -166,7 +171,7 @@ namespace Vindinium.Game.Logic
                 Name = playerId == 1 ? "GrimTrick" : "random",
                 UserId = playerId == 1 ? "8aq2nq2b" : null,
                 Elo = 1213,
-                Life = 100,
+                Life = FullLife,
                 Gold = 0,
                 Crashed = false
             };
@@ -181,7 +186,7 @@ namespace Vindinium.Game.Logic
             {
                 int enemyId = int.Parse(targetToken.Substring(1));
                 Hero enemy = _response.Game.Players.First(p => p.Id == enemyId);
-                enemy.Life -= 20;
+                enemy.Life -= AttackDamage;
                 if (enemy.Life <= 0)
                 {
                     map.ForEach(p => { if (map[p] == enemy.MineToken()) map[p] = player.MineToken(); });
@@ -234,7 +239,7 @@ namespace Vindinium.Game.Logic
         {
             if (targetToken != player.MineToken())
             {
-                player.Life -= 20;
+                player.Life -= AttackDamage;
                 if (player.Life > 0)
                 {
                     map[targetPos] = player.MineToken();
@@ -244,14 +249,14 @@ namespace Vindinium.Game.Logic
 
         private void StepIntoTavern()
         {
-            if (_response.Self.Gold >= 2)
+            if (_response.Self.Gold >= HealingCost)
             {
-                _response.Self.Life += 50;
+                _response.Self.Life += HealingAmount;
                 _response.Game.Players.First(p => p.Id == _response.Self.Id).Gold
-                    -= 2;
-                if (_response.Self.Life > 100)
+                    -= HealingCost;
+                if (_response.Self.Life > FullLife)
                 {
-                    _response.Self.Life = 100;
+                    _response.Self.Life = FullLife;
                 }
             }
         }
