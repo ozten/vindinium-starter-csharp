@@ -17,14 +17,14 @@ namespace Vindinium.Common.DataStructures
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return string.Equals(MapText, other.MapText) && Size == other.Size;
+            return string.Equals(MapText, other.MapText);
         }
 
         public override int GetHashCode()
         {
             unchecked
             {
-                return ((MapText != null ? MapText.GetHashCode() : 0)*397) ^ Size;
+                return MapText == null ? 0 : MapText.GetHashCode();
             }
         }
 
