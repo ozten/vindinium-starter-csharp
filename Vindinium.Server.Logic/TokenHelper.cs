@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using Vindinium.Common.DataStructures;
 
 namespace Vindinium.Game.Logic
 {
@@ -12,16 +11,6 @@ namespace Vindinium.Game.Logic
         internal const string Obstruction = "##";
         private const string PlayerPrefix = "@";
 
-        internal static string PlayerToken(this Hero player)
-        {
-            return Player(player.Id);
-        }
-
-        internal static string MineToken(this Hero player)
-        {
-            return Mine(player.Id);
-        }
-
         internal static string Player(int playerId)
         {
             return string.Format("{0}{1}", PlayerPrefix, IdSuffix(playerId));
@@ -32,7 +21,7 @@ namespace Vindinium.Game.Logic
             return playerId < 1 ? "-" : playerId.ToString(CultureInfo.InvariantCulture);
         }
 
-        private static string Mine(int playerId)
+        internal static string Mine(int playerId)
         {
             return string.Format("{0}{1}", MinePrefix, IdSuffix(playerId));
         }

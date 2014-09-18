@@ -100,7 +100,7 @@ namespace Vindinium.Game.Logic
 
         private void ReviveDeadPlayers()
         {
-            _response.Game.Players.Where(p => p.Life <= 0).ToList().ForEach(p => p.Life = FullLife);
+            _response.Game.Players.Where(p => p.IsDead()).ToList().ForEach(p => p.Life = FullLife);
         }
 
         private void IncrimentGold(Hero player)
@@ -118,18 +118,18 @@ namespace Vindinium.Game.Logic
 
         private void MoveDeadPlayers(Grid map)
         {
-            Hero[] deadPlayers = _response.Game.Players.Where(p => p.Life <= 0 && p.Pos != p.SpawnPos).ToArray();
+            Hero[] misplacedDead = _response.Game.Players.Where(p => p.IsDead() && p.Pos != p.SpawnPos).ToArray();
             do
             {
-                foreach (Hero deadPlayer in deadPlayers)
+                foreach (Hero deadPlayer in misplacedDead)
                 {
                     ReplaceMapToken(map, deadPlayer.MineToken(), TokenHelper.NeutralMine);
-                    _response.Game.Players.Where(p => p.Pos == deadPlayer.SpawnPos).ToList().ForEach(p => p.Life = 0);
+                    _response.Game.Players.Where(p => p.Pos == deadPlayer.SpawnPos).ToList().ForEach(p => p.Die());
                     map[deadPlayer.Pos] = TokenHelper.OpenPath;
                     deadPlayer.Pos = deadPlayer.SpawnPos;
                 }
-                deadPlayers = _response.Game.Players.Where(p => p.Life <= 0 && p.Pos != p.SpawnPos).ToArray();
-            } while (deadPlayers.Any());
+                misplacedDead = _response.Game.Players.Where(p => p.IsDead() && p.Pos != p.SpawnPos).ToArray();
+            } while (misplacedDead.Any());
 
             _response.Game.Players.ForEach(p => map[p.Pos] = p.PlayerToken());
         }
@@ -187,7 +187,7 @@ namespace Vindinium.Game.Logic
                 int enemyId = int.Parse(targetToken.Substring(1));
                 Hero enemy = _response.Game.Players.First(p => p.Id == enemyId);
                 enemy.Life -= AttackDamage;
-                if (enemy.Life <= 0)
+                if (enemy.IsDead())
                 {
                     map.ForEach(p => { if (map[p] == enemy.MineToken()) map[p] = player.MineToken(); });
                 }
@@ -240,7 +240,7 @@ namespace Vindinium.Game.Logic
             if (targetToken != player.MineToken())
             {
                 player.Life -= AttackDamage;
-                if (player.Life > 0)
+                if (player.IsLiving())
                 {
                     map[targetPos] = player.MineToken();
                 }
