@@ -62,7 +62,7 @@ namespace Vindinium.Client.Console
             }
         }
 
-        private static void SaveResponseForTesting(GameResponse response, bool isArena)
+        private static void SaveResponseForTesting(GameResponse response, bool isArena, Direction direction)
         {
             string path = @"\vindinium.logs\";
             if (!Directory.Exists(path)) Directory.CreateDirectory(path);
@@ -72,7 +72,7 @@ namespace Vindinium.Client.Console
             if (!Directory.Exists(path)) Directory.CreateDirectory(path);
             path = Path.Combine(path, response.Game.Id);
             if (!Directory.Exists(path)) Directory.CreateDirectory(path);
-            path = Path.Combine(path, string.Format("{0:0000}.json", response.Game.Turn));
+            path = Path.Combine(path, string.Format("{0:0000}.{1}.json", response.Game.Turn, direction));
             File.WriteAllText(path, response.ToJson());
         }
 
@@ -81,7 +81,8 @@ namespace Vindinium.Client.Console
         {
             do
             {
-                server.Play(gameId, token, bot.DetermineNextMove());
+                Direction direction = bot.DetermineNextMove();
+                server.Play(gameId, token, direction);
 
                 if (server.ApiResponse.HasError)
                 {
@@ -89,7 +90,7 @@ namespace Vindinium.Client.Console
                     return;
                 }
 
-                SaveResponseForTesting(server.GameResponse, parameters.Environment == EnvironmentType.Arena);
+                SaveResponseForTesting(server.GameResponse, parameters.Environment == EnvironmentType.Arena, direction);
             } while (server.ApiResponse.HasError == false && server.GameResponse.Game.Finished == false &&
                      server.GameResponse.Self.Crashed == false);
         }
