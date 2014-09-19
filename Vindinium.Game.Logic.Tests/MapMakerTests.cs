@@ -8,12 +8,12 @@ namespace Vindinium.Game.Logic.Tests
     [TestFixture]
     public class MapMakerTests
     {
-        private Grid NewMap()
+        private static Grid NewMap()
         {
             return new Grid {MapText = MapMaker.GenerateMap()};
         }
 
-        private Dictionary<string, int> TokensOnNewMap()
+        private static Dictionary<string, int> TokensOnNewMap()
         {
             Grid map = NewMap();
             var actualTokens = new Dictionary<string, int>();
