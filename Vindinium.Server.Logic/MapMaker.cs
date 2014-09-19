@@ -5,7 +5,7 @@ namespace Vindinium.Game.Logic
 {
     public static class MapMaker
     {
-        internal static string GenerateMap()
+        public static string GenerateMap()
         {
             var grid = new Grid();
             int seed = (int) DateTime.Now.Ticks%int.MaxValue;

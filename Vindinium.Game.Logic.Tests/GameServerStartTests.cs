@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using Vindinium.Common;
@@ -24,39 +23,6 @@ namespace Vindinium.Game.Logic.Tests
         private GameResponse _gameResponse;
         private Common.DataStructures.Game _game;
 
-
-        private Dictionary<string, int> GetTokens()
-        {
-            var tokens = new Dictionary<string, int>();
-            int i = 0;
-            while (i < _game.Board.MapText.Length)
-            {
-                string token = _game.Board.MapText.Substring(i, 2);
-                if (!tokens.ContainsKey(token))
-                    tokens.Add(token, 1);
-                else
-                {
-                    tokens[token]++;
-                }
-                i += 2;
-            }
-            return tokens;
-        }
-
-        private string[,] GetMap(Board board)
-        {
-            var tiles = new string[board.Size, board.Size];
-            int i = 0;
-            while (i < board.MapText.Length)
-            {
-                string token = board.MapText.Substring(i, 2);
-                int x = (i/2)%board.Size;
-                int y = ((i/2) - x)/board.Size;
-                tiles[x, y] = token;
-                i += 2;
-            }
-            return tiles;
-        }
 
         [Test]
         public void AllOtherPlayersWithoutUserId()
@@ -192,95 +158,6 @@ namespace Vindinium.Game.Logic.Tests
         public void HasAGameBoard()
         {
             Assert.That(_gameResponse.Game.Board, Is.Not.Null);
-        }
-
-        [Test]
-        public void MapDoesNotHaveUnexpectedTokens()
-        {
-            IEnumerable<string> actualTokens = GetTokens().Select(t => t.Key);
-            var expectedTokens = new[] {"@1", "@2", "@3", "@4", "$1", "$2", "$3", "$4", "[]", "$-", "##", "  "};
-            Assert.That(actualTokens, Is.SubsetOf(expectedTokens));
-        }
-
-        [Test]
-        public void MapHasEmptyMines()
-        {
-            string[] actualTokens = GetTokens().Select(t => t.Key).ToArray();
-            Assert.That(actualTokens, Has.Member("$-"));
-            Assert.That(actualTokens, Has.No.Member("$1"));
-            Assert.That(actualTokens, Has.No.Member("$2"));
-            Assert.That(actualTokens, Has.No.Member("$3"));
-            Assert.That(actualTokens, Has.No.Member("$4"));
-        }
-
-        [Test]
-        public void MapHasEmptyPath()
-        {
-            IEnumerable<string> actualTokens = GetTokens().Select(t => t.Key);
-            Assert.That(actualTokens, Has.Member("  "));
-        }
-
-        [Test]
-        public void MapHasFourTaverns()
-        {
-            Dictionary<string, int> actualTokens = GetTokens();
-            Assert.That(actualTokens["[]"], Is.EqualTo(4));
-        }
-
-        [Test]
-        public void MapHasImpassibleWoods()
-        {
-            IEnumerable<string> actualTokens = GetTokens().Select(t => t.Key);
-            Assert.That(actualTokens, Has.Member("##"));
-        }
-
-        [Test]
-        public void MapHasPlayers()
-        {
-            Dictionary<string, int> actualTokens = GetTokens();
-            Assert.That(actualTokens["@1"], Is.EqualTo(1));
-            Assert.That(actualTokens["@2"], Is.EqualTo(1));
-            Assert.That(actualTokens["@3"], Is.EqualTo(1));
-            Assert.That(actualTokens["@4"], Is.EqualTo(1));
-        }
-
-        [Test]
-        public void MapIsSymmetric()
-        {
-            string[,] map = GetMap(_game.Board);
-            int half = _game.Board.Size/2;
-            int upperBound = _game.Board.Size - 1;
-            for (int x1 = 0; x1 < half; x1++)
-            {
-                for (int y1 = 0; y1 < half; y1++)
-                {
-                    int x2 = upperBound - x1;
-                    int y2 = upperBound - y1;
-
-
-                    string token = map[x1, y1];
-                    if (token.StartsWith("@"))
-                    {
-                        Assert.That(map[x1, y1], Is.StringMatching("@\\d"));
-                        Assert.That(map[x1, y2], Is.StringMatching("@\\d"));
-                        Assert.That(map[x2, y2], Is.StringMatching("@\\d"));
-                        Assert.That(map[x2, y1], Is.StringMatching("@\\d"));
-                    }
-                    else
-                    {
-                        Assert.That(map[x1, y2], Is.EqualTo(token), "{0}x{1} != {2}x{3}", x1, y1, x1, y2);
-                        Assert.That(map[x2, y2], Is.EqualTo(token), "{0}x{1} != {2}x{3}", x1, y1, x2, y2);
-                        Assert.That(map[x2, y1], Is.EqualTo(token), "{0}x{1} != {2}x{3}", x1, y1, x2, y1);
-                    }
-                }
-            }
-        }
-
-        [Test]
-        public void MapTextIsExpectedLength()
-        {
-            Board board = _gameResponse.Game.Board;
-            Assert.That(board.MapText.Length, Is.EqualTo(board.Size*board.Size*2));
         }
 
         [Test]

@@ -98,7 +98,7 @@ namespace Vindinium.Game.Logic
             }
         }
 
-        internal void ForEach(Action<Pos> action)
+        public void ForEach(Action<Pos> action)
         {
             for (int y = 0; y < _size; y++)
             {
