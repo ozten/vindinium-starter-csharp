@@ -55,7 +55,7 @@ namespace Vindinium.Game.Logic.Tests
         public void MapHasEmptyPath()
         {
             Dictionary<string, int> actualTokens = TokensOnNewMap();
-            Assert.That(actualTokens, Has.Some.Property("Key").EqualTo("  "));
+            Assert.That(actualTokens["  "], Is.AtLeast(1));
         }
 
         [Test]
