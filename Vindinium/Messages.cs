@@ -1,9 +1,10 @@
-﻿namespace Vindinium
+﻿namespace Vindinium.Messages
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using Newtonsoft.Json.Linq;
+    using Vindinium.Util;
 
         /// <summary>
     /// Tile of the board.
@@ -107,7 +108,7 @@
     /// </summary>
     public sealed class GameState
     {
-        private Tile[][] _jaggedTiles;
+        private Tile[][] tiles;
     
         internal GameState(JObject gameResponse)
         {
@@ -136,18 +137,11 @@
         }
 
         /// <summary>
-        /// Gets the x-height of the board.
+        /// Gets the dimensions of the board.
         /// </summary>
-        /// <remarks>Presently the x- and y-heights are always the same.</remarks>
-        /// <value>The x-height.</value>
-        public int X { get; private set; }
-
-        /// <summary>
-        /// Gets the y-height of the board.
-        /// </summary>
-        /// <remarks>Presently the x- and y-heights are always the same.</remarks>
-        /// <value>The y-height.</value>
-        public int Y { get; private set; }
+        /// <value>The dimensions.</value>
+        /// <remarks>Presently the x and y heights are always the same</remarks>
+        public Tuple<int, int> Dimensions { get; private set; }
 
         /// <summary>
         /// Gets the user's own hero.
@@ -179,12 +173,6 @@
         /// <value><c>true</c> if finished; otherwise, <c>false</c>.</value>
         public bool Finished { get; private set; }
 
-        /// <summary>
-        /// Gets a value indicating whether we failed to connect to the server or not.
-        /// </summary>
-        /// <value><c>true</c> if errored; otherwise, <c>false</c>.</value>
-        public bool Errored { get; private set; }
-            
         internal Uri ViewURL { get; private set; }
 
         internal Uri PlayURL { get; private set; }
@@ -198,25 +186,37 @@
         /// <param name="y">The y coordinate.</param>
         public Tile GetTile(int x, int y)
         {
-            return this._jaggedTiles[y][x];
+            var xes = this.Dimensions.Item1;
+            var ys = this.Dimensions.Item2;
+            if (x < 0 || x >= xes)
+            {
+                throw new ArgumentException("x must be between 0 and [" + xes.ToString() + "]", "x");
+            }
+            else if ( y < 0 || y >= ys)
+            {
+                throw new ArgumentException("y must be between 0 and [" + ys.ToString()+ "]", "y");
+            }
+            else
+            {
+                return this.tiles[y][x];
+            }
         }
 
         private void CreateBoard(int size, string data)
         {
             // check to see if the board list is already created, if it is, we just overwrite its values
-            if (this._jaggedTiles == null || this._jaggedTiles.Length != size)
+            if (this.tiles == null || this.tiles.Length != size)
             {
-                this._jaggedTiles = new Tile[(int)size][];
+                this.tiles = new Tile[(int)size][];
 
                 // need to initialize the lists within the list
                 for (int i = 0; i < size; i++)
                 {
-                    this._jaggedTiles[i] = new Tile[(int)size];
+                    this.tiles[i] = new Tile[(int)size];
                 }
             }
 
-            this.X = size;
-            this.Y = size;
+            this.Dimensions = new Tuple<int, int>(size, size);
 
             // convert the string to the List<List<Tile>>
             int x = 0;
@@ -228,49 +228,49 @@
                 switch (charData[i])
                 {
                     case '#':
-                        this._jaggedTiles[x][y] = Tile.ImpassableWood;
+                        this.tiles[x][y] = Tile.ImpassableWood;
                         break;
                     case ' ':
-                        this._jaggedTiles[x][y] = Tile.Free;
+                        this.tiles[x][y] = Tile.Free;
                         break;
                     case '@':
                         switch (charData[i + 1])
                         {
                             case '1':
-                                this._jaggedTiles[x][y] = Tile.Hero1;
+                                this.tiles[x][y] = Tile.Hero1;
                                 break;
                             case '2':
-                                this._jaggedTiles[x][y] = Tile.Hero2;
+                                this.tiles[x][y] = Tile.Hero2;
                                 break;
                             case '3':
-                                this._jaggedTiles[x][y] = Tile.Hero3;
+                                this.tiles[x][y] = Tile.Hero3;
                                 break;
                             case '4':
-                                this._jaggedTiles[x][y] = Tile.Hero4;
+                                this.tiles[x][y] = Tile.Hero4;
                                 break;
                         }
 
                         break;
                     case '[':
-                        this._jaggedTiles[x][y] = Tile.Tavern;
+                        this.tiles[x][y] = Tile.Tavern;
                         break;
                     case '$':
                         switch (charData[i + 1])
                         {
                             case '-':
-                                this._jaggedTiles[x][y] = Tile.GoldMineNeutral;
+                                this.tiles[x][y] = Tile.GoldMineNeutral;
                                 break;
                             case '1':
-                                this._jaggedTiles[x][y] = Tile.GoldMine1;
+                                this.tiles[x][y] = Tile.GoldMine1;
                                 break;
                             case '2':
-                                this._jaggedTiles[x][y] = Tile.GoldMine2;
+                                this.tiles[x][y] = Tile.GoldMine2;
                                 break;
                             case '3':
-                                this._jaggedTiles[x][y] = Tile.GoldMine3;
+                                this.tiles[x][y] = Tile.GoldMine3;
                                 break;
                             case '4':
-                                this._jaggedTiles[x][y] = Tile.GoldMine4;
+                                this.tiles[x][y] = Tile.GoldMine4;
                                 break;
                         }
 
@@ -289,52 +289,6 @@
     }
 
     /// <summary>
-    /// A Position.
-    /// </summary>
-    public sealed class Pos
-    {
-        internal Pos(IDictionary<string, JToken> inp)
-        {
-            this.X = Util.JToken2T<int>(inp, "x");
-            this.Y = Util.JToken2T<int>(inp, "y");
-        }
-
-        /// <summary>
-        /// Gets the x-coordinate.
-        /// </summary>
-        /// <value>The x.</value>
-        public int X
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// Gets the y-coordinate.
-        /// </summary>
-        /// <value>The y.</value>
-        public int Y
-        {
-            get;
-            private set;
-        }
-
-        /// <param name="p">The position to convert.</param>
-        /// <summary>Implicit conversion between Pos and Tuple&lt;int, int&gt;. This is useful eg in F#</summary>
-        public static implicit operator Tuple<int, int>(Pos p)
-        {
-            if (p != null)
-            {
-                return new Tuple<int, int>(p.X, p.Y);
-            }
-            else
-            {
-                return null;
-            }
-        }
-    }
-
-    /// <summary>
     /// Represents a Hero.
     /// </summary>
     public sealed class Hero
@@ -348,8 +302,8 @@
             this.Life = Util.JToken2T<int>(inp, "life");
             this.MineCount = Util.JToken2T<int>(inp, "mineCount");
             this.Name = Util.JToken2T<string>(inp, "name");
-            this.Pos = new Pos(inp["pos"] as JObject);
-            this.SpawnPos = new Pos(inp["spawnPos"] as JObject);
+            this.Pos = Util.JObject2TupleIntInt(inp["pos"] as JObject);
+            this.SpawnPos = Util.JObject2TupleIntInt(inp["spawnPos"] as JObject);
         }
 
         /// <summary>
@@ -387,7 +341,7 @@
         /// Gets the position of the hero.
         /// </summary>
         /// <value>The position.</value>
-        public Pos Pos
+        public Tuple<int, int> Pos
         {
             get;
             private set;
@@ -427,7 +381,7 @@
         /// Gets the spawn position of the hero.
         /// </summary>
         /// <value>The spawn position.</value>
-        public Pos SpawnPos
+        public Tuple<int, int> SpawnPos
         {
             get;
             private set;

@@ -1,4 +1,4 @@
-﻿namespace Vindinium
+﻿namespace Vindinium.Configuration
 {
     using System;
     using System.Configuration;

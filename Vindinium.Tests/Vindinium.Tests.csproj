@@ -29,9 +29,22 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="nunit.framework" />
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\Vindinium\bin\Debug\Newtonsoft.Json.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Test.cs" />
+    <Compile Include="MessagesTest.cs" />
+    <Compile Include="AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <ProjectReference Include="..\Vindinium\Vindinium.csproj">
+      <Project>{D92489E7-49E9-4D1B-8E01-FB69223E0BE3}</Project>
+      <Name>Vindinium</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="sample.json" />
+  </ItemGroup>
 </Project>

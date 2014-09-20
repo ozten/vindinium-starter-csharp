@@ -1,6 +1,8 @@
-﻿namespace Vindinium
+﻿namespace Vindinium.Bot
 {
     using System;
+
+    using Vindinium.Messages;
 
     /// <summary>
     /// Random bot.

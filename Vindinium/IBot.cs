@@ -1,5 +1,7 @@
-namespace Vindinium
+namespace Vindinium.Bot
 {
+    using Vindinium.Messages;
+
     /// <summary>
     /// Interface that bots should implement.
     /// </summary>

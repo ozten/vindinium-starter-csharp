@@ -1,4 +1,4 @@
-namespace Vindinium
+namespace Vindinium.ServerStuff
 {
     using System;
     using System.Collections.Generic;
@@ -12,50 +12,29 @@ namespace Vindinium
     using log4net;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using Vindinium.Bot;
+    using Vindinium.Configuration;
+    using Vindinium.Messages;
+    using Vindinium.Util;
 
     /// <summary>
     /// Represents connection to Vindinium Server.
     /// </summary>
-    public sealed class ServerStuff
+    public abstract class AbstractServerStuff
     {
-        private static readonly ILog _logger = LogManager.GetLogger(typeof(ServerStuff));
-        private string _key;
-        private string _trainingMode;
-        private uint _turns;
-        private string _map;
-        private Uri _serverURL;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Vindinium.ServerStuff"/> class.
-        /// </summary>
-        /// <remarks>This constructor uses a config file to initialize the connection.</remarks>
-        public ServerStuff()
-        {
-            var config = (Vindinium.ConfigurationSection)System.Configuration.ConfigurationManager.GetSection("Vindinium");
-            this.Setup(config.Key, config.Mode, config.Turns, config.ServerUrl, config.Map);
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Vindinium.ServerStuff"/> class.
-        /// </summary>
-        /// <remarks>If trainingMode is Arena, turns and map are ignored.
-        /// use this constructor if you don't want to use a config file to configure your connection.</remarks>
-        /// <param name="key">Your API key that you got from the vindinium server.</param>
-        /// <param name="trainingMode">The mode to run the bot in.</param>
-        /// <param name="turns">The number of turns that the game should last.</param>
-        /// <param name="serverURL">The URL of the server.</param>
-        /// <param name="map">The Vindinium map to use.</param>
-        public ServerStuff(string key, Mode trainingMode, int turns, Uri serverURL, Map map)
-        {
-            this.Setup(key, trainingMode, turns, serverURL, map);
-        }
+        private static readonly ILog Logger = LogManager.GetLogger(typeof(ServerStuff));
+        private string key;
+        private string trainingMode;
+        private uint turns;
+        private string map;
+        private Uri serverURL;
 
         /// <summary>
         /// Creates an instance of ServerStuff from a config file and uses it to run a bot specified in the config file.
         /// </summary>
         public static void Start()
         {
-            var config = (Vindinium.ConfigurationSection)System.Configuration.ConfigurationManager.GetSection("Vindinium");
+            var config = (ConfigurationSection)System.Configuration.ConfigurationManager.GetSection("Vindinium");
             var serverStuff = new ServerStuff();
             if (config != null)
             {
@@ -65,7 +44,7 @@ namespace Vindinium
                     var botType = Type.GetType(botTypeS);
                     if (botType == null)
                     {
-                        _logger.Error("Couldn't find type [" + botTypeS + "], did you remember to specify the assembly too?");
+                        Logger.Error("Couldn't find type [" + botTypeS + "], did you remember to specify the assembly too?");
                     }
                     else
                     {
@@ -75,7 +54,7 @@ namespace Vindinium
                             var bot = maybeBot as IBot;
                             if (bot == null)
                             {
-                                _logger.Error("[" + botType + "] does not seem to implement IBot");
+                                Logger.Error("[" + botType + "] does not seem to implement IBot");
                             }
                             else
                             {
@@ -84,14 +63,14 @@ namespace Vindinium
                         }
                         catch (MissingMethodException e)
                         {
-                            _logger.Error("The specified class doesn't seem to have a zero-argument constructor", e);
+                            Logger.Error("The specified class doesn't seem to have a zero-argument constructor", e);
                         }
                     }
                 }
             }
             else
             {
-                _logger.Error("Can't find the config");
+                Logger.Error("Can't find the config");
             }
         }
 
@@ -103,7 +82,7 @@ namespace Vindinium
         {
             if (bot != null)
             {
-                _logger.Info("Running [" + bot.Name + "]");
+                Logger.Info("Running [" + bot.Name + "]");
 
                 var gameState = RetryUntilSuccessful(this.CreateGame, 1000);
 
@@ -124,20 +103,20 @@ namespace Vindinium
                     
                     gameState = RetryUntilSuccessful(f, 1000);
 
-                    _logger.Info("completed turn [" + gameState.CurrentTurn.ToString() + "]");
+                    Logger.Info("completed turn [" + gameState.CurrentTurn.ToString() + "]");
                 }
 
-                _logger.Info("[" + bot.Name + "] finished");
+                Logger.Info("[" + bot.Name + "] finished");
             }
         }
-            
-        internal static T RetryUntilSuccessful<T, U>(Func<IEither<T, U>> f, int wait) where T : class where U : class
+
+        internal static T RetryUntilSuccessful<T, U>(Func<IEither<T, U>> f, int wait)
         {
             var either = f().Value;
-            var u = either as U;
-            if (u != null)
+            if (typeof(U).IsAssignableFrom(either.GetType()))
             {
-                _logger.Error("Error value [" + u.ToString() + "]");
+                var u = (U)either;
+                Logger.Error("Error value [" + u.ToString() + "]");
                 Thread.Sleep(wait);
 
                 // TODO exponential backoff
@@ -145,22 +124,70 @@ namespace Vindinium
             }
             else
             {
-                return either as T;
+                return (T)either;
             }
+        }
+
+        /// <summary>
+        /// Describes how to send data to the server.
+        /// </summary>
+        /// <param name="webClient">Web client.</param>
+        /// <param name="uri">URI.</param>
+        /// <param name="parameters">Parameters.</param>
+        protected abstract string Upload(WebClient webClient, Uri uri, string parameters);
+
+        /// <summary>
+        /// Sets up the current instance.
+        /// </summary>
+        /// <remarks>Intended to be called in the constructor.</remarks>
+        /// <param name="currentKey">The API key.</param>
+        /// <param name="currentTrainingMode">Mode to use (training or arena).</param>
+        /// <param name="currentTurns">Number of turns.</param>
+        /// <param name="currentServerUrl">URL of vindinium server.</param>
+        /// <param name="currentMap">Map to use.</param>
+        /// <remarks><c>currentMap</c> and <c>currentTurns</c> will be ignored in Arena mode.
+        /// This method is intended to be called from the constructor.</remarks>
+        protected void Setup(string currentKey, Mode currentTrainingMode, int currentTurns, Uri currentServerUrl, Map currentMap)
+        {
+            this.key = currentKey;
+            this.trainingMode = currentTrainingMode.ToString().ToLower(CultureInfo.InvariantCulture);
+            this.serverURL = currentServerUrl ?? new Uri("http://vindinium.org");
+
+            // the reaons im doing the if statement here is so that i dont have to do it later
+            if (currentTrainingMode == Mode.Training)
+            {
+                this.turns = (uint)currentTurns;
+                if (currentMap != Map.Random)
+                {
+                    this.map = currentMap.ToString().ToLower(CultureInfo.InvariantCulture);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Configures the connection from a config file.
+        /// </summary>
+        /// <remarks>
+        /// Intended to be called in the constructor.
+        /// </remarks>
+        protected void ConfigureFromFile()
+        {
+            var config = (ConfigurationSection)System.Configuration.ConfigurationManager.GetSection("Vindinium");
+            this.Setup(config.Key, config.Mode, config.Turns, config.ServerUrl, config.Map);
         }
 
         // initializes a new game, its syncronised
         private IEither<GameState, ErrorState> CreateGame()
         {
-            Uri uri = new Uri(this._serverURL + "api/" + this._trainingMode);
+            Uri uri = new Uri(this.serverURL + "api/" + this.trainingMode);
 
-            string myParameters = "key=" + this._key;
-            if (this._trainingMode == "training")
+            string myParameters = "key=" + this.key;
+            if (this.trainingMode == "training")
             {
-                myParameters += "&turns=" + this._turns.ToString();
-                if (this._map != null)
+                myParameters += "&turns=" + this.turns.ToString();
+                if (this.map != null)
                 {
-                    myParameters += "&map=" + this._map;
+                    myParameters += "&map=" + this.map;
                 }
             }
 
@@ -169,8 +196,8 @@ namespace Vindinium
 
         private IEither<GameState, ErrorState> Upload(Uri uri, string parameters)
         {
-            _logger.Debug("URI: [" + uri + "]");
-            _logger.Debug("Params: [" + parameters + "]");
+            Logger.Debug("URI: [" + uri + "]");
+            Logger.Debug("Params: [" + parameters + "]");
 
             // make the request
             using (WebClient client = new WebClient())
@@ -178,40 +205,70 @@ namespace Vindinium
                 client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
                 try
                 {
-                    string result = client.UploadString(uri, parameters);
+                    string result = this.Upload(client, uri, parameters);
                     var gameResponse = JsonConvert.DeserializeObject<JObject>(result);
-                    return new Left<GameState>(new GameState(gameResponse));
+                    return new Left<GameState, ErrorState>(new GameState(gameResponse));
                 }
                 catch (WebException exception)
                 {
-                    _logger.Error("Failed to contact [" + uri + "]");
-                    _logger.Error("WebException [" + exception + "]", exception);
+                    Logger.Error("Failed to contact [" + uri + "]");
+                    Logger.Error("WebException [" + exception + "]", exception);
 
-                    return new Right<ErrorState>(new ErrorState(exception));
+                    return new Right<GameState, ErrorState>(new ErrorState(exception));
                 }
             }
         }
 
         private IEither<GameState, ErrorState> MoveHero(string direction, Uri playURL)
         {
-            string myParameters = "key=" + this._key + "&dir=" + direction;
+            string myParameters = "key=" + this.key + "&dir=" + direction;
             return this.Upload(playURL, myParameters);
         }
+    }
 
-        private void Setup(string key, Mode trainingMode, int turns, Uri serverURL, Map map)
+    /// <summary>
+    /// Server stuff to be used.
+    /// </summary>
+    public sealed class ServerStuff : AbstractServerStuff
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Vindinium.ServerStuff.ServerStuff"/> class.
+        /// </summary>
+        /// <remarks>Use this constructor to configure the class from a config file.</remarks>
+        public ServerStuff()
         {
-            this._key = key;
-            this._trainingMode = trainingMode.ToString().ToLower(CultureInfo.InvariantCulture);
-            this._serverURL = serverURL ?? new Uri("http://vindinium.org");
+            this.ConfigureFromFile();
+        }
 
-            // the reaons im doing the if statement here is so that i dont have to do it later
-            if (trainingMode == Mode.Training)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Vindinium.ServerStuff.ServerStuff"/> class.
+        /// </summary>
+        /// <param name="currentKey">The API key.</param>
+        /// <param name="currentTrainingMode">Mode to use (training or arena).</param>
+        /// <param name="currentTurns">Number of turns.</param>
+        /// <param name="currentServerUrl">URL of vindinium server.</param>
+        /// <param name="currentMap">Map to use.</param>
+        /// <remarks>Use this constructor if you don't want to configure the class from a config file.</remarks>
+        public ServerStuff(string currentKey, Mode currentTrainingMode, int currentTurns, Uri currentServerUrl, Map currentMap)
+        {
+            this.Setup(currentKey, currentTrainingMode, currentTurns, currentServerUrl, currentMap);
+        }
+
+        /// <summary>
+        /// Describes how to send data to the server.
+        /// </summary>
+        /// <param name="webClient">Web client.</param>
+        /// <param name="uri">URI.</param>
+        /// <param name="parameters">Parameters.</param>
+        protected override string Upload(WebClient webClient, Uri uri, string parameters)
+        {
+            if (webClient != null)
             {
-                this._turns = (uint)turns;
-                if (map != Map.Random)
-                {
-                    this._map = map.ToString().ToLower(CultureInfo.InvariantCulture);
-                }
+                return webClient.UploadString(uri, parameters);
+            }
+            else
+            {
+                throw new ArgumentNullException("webClient");
             }
         }
     }
@@ -220,7 +277,6 @@ namespace Vindinium
     {
         internal ErrorState(WebException exception)
         {
-            this.Errored = true;
             if (exception.Response != null)
             {
                 using (var reader = new StreamReader(exception.Response.GetResponseStream()))
@@ -234,8 +290,6 @@ namespace Vindinium
             }
         }
 
-        internal bool Errored { get; private set; }
-
         internal string ErrorText { get; private set; }
-    }   
+    }
 }

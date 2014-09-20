@@ -5,6 +5,7 @@
     using System.Configuration;
 
     using log4net.Config;
+    using Vindinium.ServerStuff;
 
     internal static class Client
     {

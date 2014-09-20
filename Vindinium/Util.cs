@@ -1,4 +1,4 @@
-namespace Vindinium
+namespace Vindinium.Util
 {
     using System;
     using System.Collections.Generic;
@@ -11,6 +11,13 @@ namespace Vindinium
 
     internal static class Util
     {
+        internal static Tuple<int, int> JObject2TupleIntInt(IDictionary<string, JToken> inp)
+        {
+            var x = JToken2T<int>(inp, "x");
+            var y = JToken2T<int>(inp, "y");
+            return new Tuple<int, int>(x, y);
+        }
+
         internal static T? JToken2NullableT<T>(IDictionary<string, JToken> inp, string key) where T : struct
         {
             if (inp != null)
@@ -66,33 +73,33 @@ namespace Vindinium
         }
     }
 
-    internal sealed class Left<TLeft> : IEither<TLeft, object>
+    internal sealed class Left<TLeft, TRight> : IEither<TLeft, TRight>
     {
-        private readonly TLeft _value;
+        private readonly TLeft value;
 
         public Left(TLeft left)
         {
-            this._value = left;
+            this.value = left;
         }
 
         public object Value
         {
-            get { return (object)this._value; }
+            get { return (object)this.value; }
         }
     }
 
-    internal sealed class Right<TRight> : IEither<object, TRight>
+    internal sealed class Right<TLeft, TRight> : IEither<TLeft, TRight>
     {
-        private readonly TRight _value;
+        private readonly TRight value;
 
         public Right(TRight right)
         {
-            this._value = right;
+            this.value = right;
         }
 
         public object Value
         {
-            get { return (object)this._value; }
+            get { return (object)this.value; }
         }
     }
 }
