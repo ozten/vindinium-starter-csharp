@@ -139,5 +139,18 @@
             get { return (string)this["bot"]; }
             set { this["bot"] = value; }
         }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether a web browser should be opened to watch the game.
+        /// </summary>
+        /// <value><c>true</c> if the web browser should be open; otherwise, <c>false</c>.</value>
+        /// <remarks>It may be useful to set this to <c>false</c> if you are running on a server
+        /// (e.g. if you are doing something computation-heavy), as well as in testing.</remarks>
+        [ConfigurationProperty("openWebBrowser", DefaultValue = true, IsRequired = false)]
+        public bool OpenWebBrowser
+        {
+            get { return (bool)this["openWebBrowser"]; }
+            set { this["openWebBrowser"] = value; }
+        }
     }
 }

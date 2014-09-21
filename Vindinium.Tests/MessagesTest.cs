@@ -39,6 +39,17 @@
         }
 
         /// <summary>
+        /// Checks our Equals method is defined properly. Note that this is implicitly also testing the Equals method of Hero
+        /// </summary>
+        [Test]
+        public void GameStatesInstantiatedWithTheSameJObjectAreConsideredTheSame()
+        {
+            var left = new GameState(this.jobject);
+            var right = new GameState(this.jobject);
+            Assert.AreEqual(left, right);
+        }
+
+        /// <summary>
         /// Checks game state properties deserialize correctly.
         /// </summary>
         [Test]

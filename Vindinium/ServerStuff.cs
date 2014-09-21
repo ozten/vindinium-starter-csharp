@@ -33,6 +33,7 @@ namespace Vindinium.ServerStuff
         private uint turns;
         private string map;
         private Uri serverURL;
+        private bool openWebBrowser;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Vindinium.ServerStuff.ServerStuff"/> class.
@@ -48,9 +49,10 @@ namespace Vindinium.ServerStuff
         /// </summary>
         /// <param name="currentKey">The API key.</param>
         /// <param name="currentServerUrl">URL of vindinium server.</param>
+        /// <param name="currentOpenWebBrowser">Whether or not to open a web browser to view the game.</param> 
         /// <remarks>Use this constructor if you don't want to configure
         /// the class from a config file and want to run in arena mode.</remarks>
-        public ServerStuff(string currentKey, Uri currentServerUrl)
+        public ServerStuff(string currentKey, Uri currentServerUrl, bool currentOpenWebBrowser)
         {
             if (currentKey == null)
             {
@@ -62,7 +64,7 @@ namespace Vindinium.ServerStuff
             }
             else
             {
-                this.Setup(currentKey, Mode.Arena, 0, currentServerUrl, Map.Random);
+                this.Setup(currentKey, Mode.Arena, 0, currentServerUrl, Map.Random, currentOpenWebBrowser);
             }
         }
 
@@ -73,9 +75,10 @@ namespace Vindinium.ServerStuff
         /// <param name="currentTurns">Number of turns.</param>
         /// <param name="currentServerUrl">URL of vindinium server.</param>
         /// <param name="currentMap">Map to use.</param>
+        /// <param name="currentOpenWebBrowser">Whether or not to open a web browser to view the game.</param> 
         /// <remarks>Use this constructor if you don't want to configure
         /// the class from a config file and want to run in training mode.</remarks>
-        public ServerStuff(string currentKey, int currentTurns, Uri currentServerUrl, Map currentMap)
+        public ServerStuff(string currentKey, int currentTurns, Uri currentServerUrl, Map currentMap, bool currentOpenWebBrowser)
         {
             if (currentServerUrl == null)
             {
@@ -87,7 +90,7 @@ namespace Vindinium.ServerStuff
             }
             else 
             {
-                this.Setup(currentKey, Mode.Training, currentTurns, currentServerUrl, currentMap);
+                this.Setup(currentKey, Mode.Training, currentTurns, currentServerUrl, currentMap, currentOpenWebBrowser);
             }
         }
 
@@ -98,15 +101,23 @@ namespace Vindinium.ServerStuff
         /// </summary>
         public static void Start()
         {
-            var config = (ConfigurationSection)System.Configuration.ConfigurationManager.GetSection("Vindinium");
             var serverStuff = new ServerStuff();
+            serverStuff.Submit();
+        }
+
+        /// <summary>
+        /// Submits a bot specified in a config file.
+        /// </summary>
+        public void Submit()
+        {
+            var config = (ConfigurationSection)System.Configuration.ConfigurationManager.GetSection("Vindinium");
             if (config != null)
             {
                 var botTypeS = config.Bot;
                 if (botTypeS != null)
                 {
                     var botType = Type.GetType(botTypeS);
-                    if (botType == null)
+                    if (ReferenceEquals(botType, null))
                     {
                         Logger.Error("Couldn't find type [" + botTypeS + "], did you remember to specify the assembly too?");
                     }
@@ -122,7 +133,7 @@ namespace Vindinium.ServerStuff
                             }
                             else
                             {
-                                serverStuff.Submit(bot);
+                                this.Submit(bot);
                             }
                         }
                         catch (MissingMethodException e)
@@ -153,16 +164,19 @@ namespace Vindinium.ServerStuff
                 // opens up a webpage so you can view the game, doing it async so we dont time out
                 // TODO should we really use a TaskFactory or TaskScheduler here?
                 // would we gain anything by doing so?
-                new Thread(() =>
+                if (this.openWebBrowser)
                 {
-                    var g = gameState.Value as GameState;
-                    if (g != null)
+                    new Thread(() =>
                     {
-                        using (System.Diagnostics.Process.Start(g.ViewURL.ToString()))
+                        var g = gameState.Value as GameState;
+                        if (g != null)
                         {
+                            using (System.Diagnostics.Process.Start(g.ViewURL.ToString()))
+                            {
+                            }
                         }
-                    }
-                }).Start();
+                    }).Start();
+                }
 
                 this.MoveHero(gameState, bot);
 
@@ -174,12 +188,13 @@ namespace Vindinium.ServerStuff
             }
         }
 
-        private void Setup(string currentKey, Mode currentTrainingMode, int currentTurns, Uri currentServerUrl, Map currentMap)
+        private void Setup(string currentKey, Mode currentTrainingMode, int currentTurns, Uri currentServerUrl, Map currentMap, bool currentOpenWebBrowser)
         {
             this.Uploader = new Uploader();
             this.key = currentKey;
             this.trainingMode = currentTrainingMode.ToString().ToLower(CultureInfo.InvariantCulture);
             this.serverURL = currentServerUrl ?? new Uri("http://vindinium.org");
+            this.openWebBrowser = currentOpenWebBrowser;
 
             // the reaons im doing the if statement here is so that i dont have to do it later
             if (currentTrainingMode == Mode.Training)
@@ -195,7 +210,7 @@ namespace Vindinium.ServerStuff
         private void ConfigureFromFile()
         {
             var config = (ConfigurationSection)System.Configuration.ConfigurationManager.GetSection("Vindinium");
-            this.Setup(config.Key, config.Mode, config.Turns, config.ServerUrl, config.Map);
+            this.Setup(config.Key, config.Mode, config.Turns, config.ServerUrl, config.Map, config.OpenWebBrowser);
         }
 
         // initializes a new game, its syncronised

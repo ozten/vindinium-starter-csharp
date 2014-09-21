@@ -111,6 +111,7 @@
     public sealed class GameState : IEquatable<GameState>
     {
         private Tile[][] tiles;
+        private string tilesString;
 
         internal GameState(JObject gameResponse)
         {
@@ -128,13 +129,14 @@
 
             this.MyHero = new Hero(gameResponse["hero"] as JObject);
             var game = (JObject)gameResponse["game"];
-            this.Heroes = (game["heroes"] as JArray ?? new JArray()).Select(x => new Hero(x as JObject)).ToList();
+            this.Heroes = new HashSet<Hero>((game["heroes"] as JArray ?? new JArray()).Select(x => new Hero(x as JObject)));
             this.CurrentTurn = Util.JToken2T<int>(game, "turn");
             this.MaxTurns = Util.JToken2T<int>(game, "maxTurns");
             this.Finished = Util.JToken2T<bool>(game, "finished");
             var board = game["board"] as JObject;
             var size = Util.JToken2T<int>(board, "size");
             var tiles = Util.JToken2T<string>(board, "tiles");
+            this.tilesString = tiles;
             this.CreateBoard(size, tiles);
         }
 
@@ -155,7 +157,8 @@
         /// Gets all the heroes.
         /// </summary>
         /// <value>The heroes.</value>
-        public IList<Hero> Heroes { get; private set; }
+        /// <remarks>TODO look at immutable collections to go here.</remarks>
+        public ISet<Hero> Heroes { get; private set; }
 
         /// <summary>
         /// Gets the number of the current turn.
@@ -178,6 +181,20 @@
         internal Uri ViewURL { get; private set; }
 
         internal Uri PlayURL { get; private set; }
+
+        /// <param name="left">Left.</param>
+        /// <param name="right">Right.</param>
+        public static bool operator ==(GameState left, GameState right)
+        {
+            return (ReferenceEquals(left, null) && ReferenceEquals(right, null)) || left.Equals(right);
+        }
+
+        /// <param name="left">Left.</param>
+        /// <param name="right">Right.</param>
+        public static bool operator !=(GameState left, GameState right)
+        {
+            return (ReferenceEquals(left, null) && !ReferenceEquals(right, null)) || !left.Equals(right);
+        }
 
         /// <summary>
         /// Gets the tile with x and y coordinates specified.
@@ -210,7 +227,7 @@
         /// <returns>A <see cref="System.String"/> that represents the current <see cref="Vindinium.Messages.GameState"/>.</returns>
         public override string ToString()
         {
-            return string.Format(CultureInfo.InvariantCulture, "[GameState: tiles={0}, Dimensions={1}, MyHero={2}, Heroes={3}, CurrentTurn={4}, MaxTurns={5}, Finished={6}, ViewURL={7}, PlayURL={8}]", this.tiles, this.Dimensions, this.MyHero, this.Heroes, this.CurrentTurn, this.MaxTurns, this.Finished, this.ViewURL, this.PlayURL);
+            return string.Format(CultureInfo.InvariantCulture, "[GameState: tilesString={0}, Dimensions={1}, MyHero={2}, Heroes={3}, CurrentTurn={4}, MaxTurns={5}, Finished={6}, ViewURL={7}, PlayURL={8}]", this.tilesString, this.Dimensions, this.MyHero, this.Heroes, this.CurrentTurn, this.MaxTurns, this.Finished, this.ViewURL, this.PlayURL);
         }
 
         /// <summary>
@@ -221,23 +238,20 @@
         /// <see cref="Vindinium.Messages.GameState"/>; otherwise, <c>false</c>.</returns>
         public override bool Equals(object obj)
         {
-            if (obj == null)
-            {
-                return false;
-            }
-
             if (ReferenceEquals(this, obj))
             {
                 return true;
             }
 
-            if (obj.GetType() != typeof(GameState))
+            var other = obj as GameState;
+            if(ReferenceEquals(obj, null))
             {
                 return false;
             }
-
-            GameState other = (GameState)obj;
-            return this.tiles == other.tiles && this.Dimensions == other.Dimensions && this.MyHero == other.MyHero && this.Heroes == other.Heroes && this.CurrentTurn == other.CurrentTurn && this.MaxTurns == other.MaxTurns && this.Finished == other.Finished && this.ViewURL == other.ViewURL && this.PlayURL == other.PlayURL;
+            else
+            {
+                return this.tilesString == other.tilesString && ((this.Dimensions == null && other.Dimensions == null) || (this.Dimensions.Item1 == other.Dimensions.Item1 && this.Dimensions.Item2 == other.Dimensions.Item2)) && this.MyHero == other.MyHero && ((this.Heroes == null && other.Heroes == null) || ((this.Heroes.Count == other.Heroes.Count) && !this.Heroes.Except(other.Heroes).Any())) && this.CurrentTurn == other.CurrentTurn && this.MaxTurns == other.MaxTurns && this.Finished == other.Finished && this.ViewURL == other.ViewURL && this.PlayURL == other.PlayURL;
+            }
         }
 
         /// <summary>
@@ -248,7 +262,14 @@
         /// <see cref="Vindinium.Messages.GameState"/>; otherwise, <c>false</c>.</returns>
         public bool Equals(GameState other)
         {
-            return this.Equals((object) other);
+            if (other == null)
+            {
+                return false;
+            }
+            else
+            {
+                return this.tilesString == other.tilesString && ((this.Dimensions == null && other.Dimensions == null) || (this.Dimensions.Item1 == other.Dimensions.Item1 && this.Dimensions.Item2 == other.Dimensions.Item2)) && this.MyHero == other.MyHero && ((this.Heroes == null && other.Heroes == null) || ((this.Heroes.Count == other.Heroes.Count) && !this.Heroes.Except(other.Heroes).Any())) && this.CurrentTurn == other.CurrentTurn && this.MaxTurns == other.MaxTurns && this.Finished == other.Finished && this.ViewURL == other.ViewURL && this.PlayURL == other.PlayURL;
+            }
         }
 
         /// <summary>
@@ -260,7 +281,7 @@
         {
             unchecked
             {
-                return (this.tiles != null ? this.tiles.GetHashCode() : 0) ^ (this.Dimensions != null ? this.Dimensions.GetHashCode() : 0) ^ (this.MyHero != null ? this.MyHero.GetHashCode() : 0) ^ (this.Heroes != null ? this.Heroes.GetHashCode() : 0) ^ this.CurrentTurn.GetHashCode() ^ this.MaxTurns.GetHashCode() ^ this.Finished.GetHashCode() ^ (this.ViewURL != null ? this.ViewURL.GetHashCode() : 0) ^ (this.PlayURL != null ? this.PlayURL.GetHashCode() : 0);
+                return (this.tilesString != null ? this.tilesString.GetHashCode() : 0) ^ (this.Dimensions != null ? this.Dimensions.GetHashCode() : 0) ^ (this.MyHero != null ? this.MyHero.GetHashCode() : 0) ^ (this.Heroes != null ? this.Heroes.Aggregate(0, (acc, hero) => acc ^ (hero != null ? hero.GetHashCode() : 0)) : 0) ^ this.CurrentTurn.GetHashCode() ^ this.MaxTurns.GetHashCode() ^ this.Finished.GetHashCode() ^ (this.ViewURL != null ? this.ViewURL.GetHashCode() : 0) ^ (this.PlayURL != null ? this.PlayURL.GetHashCode() : 0);
             }
         }
 
@@ -459,6 +480,20 @@
             private set;
         }
 
+        /// <param name="left">Left.</param>
+        /// <param name="right">Right.</param>
+        public static bool operator ==(Hero left, Hero right)
+        {
+            return (ReferenceEquals(left, null) && ReferenceEquals(right, null)) || left.Equals(right);
+        }
+
+        /// <param name="left">Left.</param>
+        /// <param name="right">Right.</param>
+        public static bool operator !=(Hero left, Hero right)
+        {
+            return (ReferenceEquals(left, null) && !ReferenceEquals(right, null)) || !left.Equals(right);
+        }
+
         /// <summary>
         /// Returns a <see cref="System.String"/> that represents the current <see cref="Vindinium.Messages.Hero"/>.
         /// </summary>
@@ -476,23 +511,21 @@
         /// <see cref="Vindinium.Messages.Hero"/>; otherwise, <c>false</c>.</returns>
         public override bool Equals(object obj)
         {
-            if (obj == null)
-            {
-                return false;
-            }
-
             if (ReferenceEquals(this, obj))
             {
                 return true;
             }
 
-            if (obj.GetType() != typeof(Hero))
+            var other = obj as Hero;
+
+            if(ReferenceEquals(other, null))
             {
                 return false;
             }
-
-            Hero other = (Hero)obj;
-            return this.Id == other.Id && this.Name == other.Name && this.Elo == other.Elo && this.Pos == other.Pos && this.Life == other.Life && this.Gold == other.Gold && this.MineCount == other.MineCount && this.SpawnPos == other.SpawnPos && this.Crashed == other.Crashed;
+            else
+            {
+                return this.Id == other.Id && this.Name == other.Name && this.Elo == other.Elo && this.Pos.Item1 == other.Pos.Item1 && this.Pos.Item2 == other.Pos.Item2 && this.Life == other.Life && this.Gold == other.Gold && this.MineCount == other.MineCount && this.SpawnPos.Item1 == other.SpawnPos.Item1 && this.SpawnPos.Item2 == other.SpawnPos.Item2 && this.Crashed == other.Crashed;
+            }
         }
 
         /// <summary>
@@ -503,7 +536,14 @@
         /// <see cref="Vindinium.Messages.Hero"/>; otherwise, <c>false</c>.</returns>
         public bool Equals(Hero other)
         {
-            return this.Equals((object)other);
+            if (other == null)
+            {
+                return false;
+            }
+            else
+            {
+                return this.Id == other.Id && this.Name == other.Name && this.Elo == other.Elo && this.Pos.Item1 == other.Pos.Item1 && this.Pos.Item2 == other.Pos.Item2 && this.Life == other.Life && this.Gold == other.Gold && this.MineCount == other.MineCount && this.SpawnPos.Item1 == other.SpawnPos.Item1 && this.SpawnPos.Item2 == other.SpawnPos.Item2 && this.Crashed == other.Crashed;
+            }
         }
 
         /// <summary>
