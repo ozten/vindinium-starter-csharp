@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using Vindinium.Common.DataStructures;
 
 namespace Vindinium.Game.Logic.Tests
 {
@@ -30,6 +31,20 @@ namespace Vindinium.Game.Logic.Tests
                 }
             });
             return actualTokens;
+        }
+
+        [Test]
+        public void AllPathsAreReachable()
+        {
+            Grid map = NewMap();
+            Pos start = map.PositionOf("  ");
+            map.ForEach(
+                p =>
+                {
+                    if (map[p] == "  ")
+                        Assert.That(map.PathExistsBetween(start, p), Is.True,
+                            "No path exists between {0} and {1}\r\n{2}", start, p, new Board {MapText = map.MapText});
+                });
         }
 
         [Test]

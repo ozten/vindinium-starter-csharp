@@ -30,13 +30,14 @@ namespace Vindinium.Common.DataStructures
 
         public override string ToString()
         {
+            var size = (int) Math.Sqrt(MapText.Length/2.0);
             var sb = new StringBuilder();
-            string border = string.Format("+{0}+", "-".PadLeft(Size*2, '-'));
+            string border = string.Format("+{0}+", "-".PadLeft(size*2, '-'));
             sb.AppendLine(border);
-            for (int i = 0; i < Size; i++)
+            for (int i = 0; i < size; i++)
             {
                 sb.Append("|");
-                sb.Append(MapText.Substring(i*Size*2, Size*2));
+                sb.Append(MapText.Substring(i*size*2, size*2));
                 sb.AppendLine("|");
             }
             sb.Append(border);

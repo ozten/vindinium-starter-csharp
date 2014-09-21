@@ -142,5 +142,17 @@ namespace Vindinium.Game.Logic
         {
             return Regex.Matches(MapText, Regex.Escape(token)).Count;
         }
+
+        public bool PathExistsBetween(Pos start, Pos end)
+        {
+            if (start == end) return true;
+            if (start + new Pos {X = 1} == end) return true;
+            if (start + new Pos {X = -1} == end) return true;
+            if (start + new Pos {Y = 1} == end) return true;
+            if (start + new Pos {Y = -1} == end) return true;
+
+
+            return false;
+        }
     }
 }
