@@ -2,11 +2,13 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
+
     using Newtonsoft.Json.Linq;
     using Vindinium.Util;
 
-        /// <summary>
+    /// <summary>
     /// Tile of the board.
     /// </summary>
     public enum Tile
@@ -106,10 +108,10 @@
     /// <summary>
     /// The current game state.
     /// </summary>
-    public sealed class GameState
+    public sealed class GameState : IEquatable<GameState>
     {
         private Tile[][] tiles;
-    
+
         internal GameState(JObject gameResponse)
         {
             var playUrl = Util.JToken2T<string>(gameResponse, "playUrl");
@@ -192,13 +194,73 @@
             {
                 throw new ArgumentException("x must be between 0 and [" + xes.ToString() + "]", "x");
             }
-            else if ( y < 0 || y >= ys)
+            else if (y < 0 || y >= ys)
             {
-                throw new ArgumentException("y must be between 0 and [" + ys.ToString()+ "]", "y");
+                throw new ArgumentException("y must be between 0 and [" + ys.ToString() + "]", "y");
             }
             else
             {
                 return this.tiles[y][x];
+            }
+        }
+
+        /// <summary>
+        /// Returns a <see cref="System.String"/> that represents the current <see cref="Vindinium.Messages.GameState"/>.
+        /// </summary>
+        /// <returns>A <see cref="System.String"/> that represents the current <see cref="Vindinium.Messages.GameState"/>.</returns>
+        public override string ToString()
+        {
+            return string.Format(CultureInfo.InvariantCulture, "[GameState: tiles={0}, Dimensions={1}, MyHero={2}, Heroes={3}, CurrentTurn={4}, MaxTurns={5}, Finished={6}, ViewURL={7}, PlayURL={8}]", this.tiles, this.Dimensions, this.MyHero, this.Heroes, this.CurrentTurn, this.MaxTurns, this.Finished, this.ViewURL, this.PlayURL);
+        }
+
+        /// <summary>
+        /// Determines whether the specified <see cref="System.Object"/> is equal to the current <see cref="Vindinium.Messages.GameState"/>.
+        /// </summary>
+        /// <param name="obj">The <see cref="System.Object"/> to compare with the current <see cref="Vindinium.Messages.GameState"/>.</param>
+        /// <returns><c>true</c> if the specified <see cref="System.Object"/> is equal to the current
+        /// <see cref="Vindinium.Messages.GameState"/>; otherwise, <c>false</c>.</returns>
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != typeof(GameState))
+            {
+                return false;
+            }
+
+            GameState other = (GameState)obj;
+            return this.tiles == other.tiles && this.Dimensions == other.Dimensions && this.MyHero == other.MyHero && this.Heroes == other.Heroes && this.CurrentTurn == other.CurrentTurn && this.MaxTurns == other.MaxTurns && this.Finished == other.Finished && this.ViewURL == other.ViewURL && this.PlayURL == other.PlayURL;
+        }
+
+        /// <summary>
+        /// Determines whether the specified <see cref="Vindinium.Messages.GameState"/> is equal to the current <see cref="Vindinium.Messages.GameState"/>.
+        /// </summary>
+        /// <param name="other">The <see cref="Vindinium.Messages.GameState"/> to compare with the current <see cref="Vindinium.Messages.GameState"/>.</param>
+        /// <returns><c>true</c> if the specified <see cref="Vindinium.Messages.GameState"/> is equal to the current
+        /// <see cref="Vindinium.Messages.GameState"/>; otherwise, <c>false</c>.</returns>
+        public bool Equals(GameState other)
+        {
+            return this.Equals((object) other);
+        }
+
+        /// <summary>
+        /// Serves as a hash function for a <see cref="Vindinium.Messages.GameState"/> object.
+        /// </summary>
+        /// <returns>A hash code for this instance that is suitable for use in hashing algorithms and data structures such as a
+        /// hash table.</returns>
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (this.tiles != null ? this.tiles.GetHashCode() : 0) ^ (this.Dimensions != null ? this.Dimensions.GetHashCode() : 0) ^ (this.MyHero != null ? this.MyHero.GetHashCode() : 0) ^ (this.Heroes != null ? this.Heroes.GetHashCode() : 0) ^ this.CurrentTurn.GetHashCode() ^ this.MaxTurns.GetHashCode() ^ this.Finished.GetHashCode() ^ (this.ViewURL != null ? this.ViewURL.GetHashCode() : 0) ^ (this.PlayURL != null ? this.PlayURL.GetHashCode() : 0);
             }
         }
 
@@ -291,7 +353,7 @@
     /// <summary>
     /// Represents a Hero.
     /// </summary>
-    public sealed class Hero
+    public sealed class Hero : IEquatable<Hero>
     {
         internal Hero(IDictionary<string, JToken> inp)
         {
@@ -395,6 +457,66 @@
         {
             get;
             private set;
+        }
+
+        /// <summary>
+        /// Returns a <see cref="System.String"/> that represents the current <see cref="Vindinium.Messages.Hero"/>.
+        /// </summary>
+        /// <returns>A <see cref="System.String"/> that represents the current <see cref="Vindinium.Messages.Hero"/>.</returns>
+        public override string ToString()
+        {
+            return string.Format(CultureInfo.InvariantCulture, "[Hero: Id={0}, Name={1}, Elo={2}, Pos={3}, Life={4}, Gold={5}, MineCount={6}, SpawnPos={7}, Crashed={8}]", this.Id, this.Name, this.Elo, this.Pos, this.Life, this.Gold, this.MineCount, this.SpawnPos, this.Crashed);
+        }
+
+        /// <summary>
+        /// Determines whether the specified <see cref="System.Object"/> is equal to the current <see cref="Vindinium.Messages.Hero"/>.
+        /// </summary>
+        /// <param name="obj">The <see cref="System.Object"/> to compare with the current <see cref="Vindinium.Messages.Hero"/>.</param>
+        /// <returns><c>true</c> if the specified <see cref="System.Object"/> is equal to the current
+        /// <see cref="Vindinium.Messages.Hero"/>; otherwise, <c>false</c>.</returns>
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != typeof(Hero))
+            {
+                return false;
+            }
+
+            Hero other = (Hero)obj;
+            return this.Id == other.Id && this.Name == other.Name && this.Elo == other.Elo && this.Pos == other.Pos && this.Life == other.Life && this.Gold == other.Gold && this.MineCount == other.MineCount && this.SpawnPos == other.SpawnPos && this.Crashed == other.Crashed;
+        }
+
+        /// <summary>
+        /// Determines whether the specified <see cref="Vindinium.Messages.Hero"/> is equal to the current <see cref="Vindinium.Messages.Hero"/>.
+        /// </summary>
+        /// <param name="other">The <see cref="Vindinium.Messages.Hero"/> to compare with the current <see cref="Vindinium.Messages.Hero"/>.</param>
+        /// <returns><c>true</c> if the specified <see cref="Vindinium.Messages.Hero"/> is equal to the current
+        /// <see cref="Vindinium.Messages.Hero"/>; otherwise, <c>false</c>.</returns>
+        public bool Equals(Hero other)
+        {
+            return this.Equals((object)other);
+        }
+
+        /// <summary>
+        /// Serves as a hash function for a <see cref="Vindinium.Messages.Hero"/> object.
+        /// </summary>
+        /// <returns>A hash code for this instance that is suitable for use in hashing algorithms and data structures such as a
+        /// hash table.</returns>
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return this.Id.GetHashCode() ^ (this.Name != null ? this.Name.GetHashCode() : 0) ^ this.Elo.GetHashCode() ^ (this.Pos != null ? this.Pos.GetHashCode() : 0) ^ this.Life.GetHashCode() ^ this.Gold.GetHashCode() ^ this.MineCount.GetHashCode() ^ (this.SpawnPos != null ? this.SpawnPos.GetHashCode() : 0) ^ this.Crashed.GetHashCode();
+            }
         }
     }
 }

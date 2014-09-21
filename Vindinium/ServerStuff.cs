@@ -17,10 +17,15 @@ namespace Vindinium.ServerStuff
     using Vindinium.Messages;
     using Vindinium.Util;
 
+    internal interface IUploader
+    {
+        string Upload(WebClient wc, Uri uri, string parameters);
+    }
+
     /// <summary>
     /// Represents connection to Vindinium Server.
     /// </summary>
-    public abstract class AbstractServerStuff
+    public sealed class ServerStuff
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(ServerStuff));
         private string key;
@@ -28,6 +33,65 @@ namespace Vindinium.ServerStuff
         private uint turns;
         private string map;
         private Uri serverURL;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Vindinium.ServerStuff.ServerStuff"/> class.
+        /// </summary>
+        /// <remarks>Use this constructor to configure the class from a config file.</remarks>
+        public ServerStuff()
+        {
+            this.ConfigureFromFile();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Vindinium.ServerStuff.ServerStuff"/> class.
+        /// </summary>
+        /// <param name="currentKey">The API key.</param>
+        /// <param name="currentServerUrl">URL of vindinium server.</param>
+        /// <remarks>Use this constructor if you don't want to configure
+        /// the class from a config file and want to run in arena mode.</remarks>
+        public ServerStuff(string currentKey, Uri currentServerUrl)
+        {
+            if (currentKey == null)
+            {
+                throw new ArgumentNullException("currentKey");
+            }
+            else if (currentServerUrl == null)
+            {
+                throw new ArgumentNullException("currentServerUrl");
+            }
+            else
+            {
+                this.Setup(currentKey, Mode.Arena, 0, currentServerUrl, Map.Random);
+            }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Vindinium.ServerStuff.ServerStuff"/> class.
+        /// </summary>
+        /// <param name="currentKey">The API key.</param>
+        /// <param name="currentTurns">Number of turns.</param>
+        /// <param name="currentServerUrl">URL of vindinium server.</param>
+        /// <param name="currentMap">Map to use.</param>
+        /// <remarks>Use this constructor if you don't want to configure
+        /// the class from a config file and want to run in training mode.</remarks>
+        public ServerStuff(string currentKey, int currentTurns, Uri currentServerUrl, Map currentMap)
+        {
+            if (currentServerUrl == null)
+            {
+                throw new ArgumentNullException("currentServerUrl");
+            }
+            else if (currentKey == null)
+            {
+                throw new ArgumentNullException("currentKey");
+            }
+            else 
+            {
+                this.Setup(currentKey, Mode.Training, currentTurns, currentServerUrl, currentMap);
+            }
+        }
+
+        internal IUploader Uploader { get; set; }
 
         /// <summary>
         /// Creates an instance of ServerStuff from a config file and uses it to run a bot specified in the config file.
@@ -84,71 +148,35 @@ namespace Vindinium.ServerStuff
             {
                 Logger.Info("Running [" + bot.Name + "]");
 
-                var gameState = RetryUntilSuccessful(this.CreateGame, 1000);
+                var gameState = this.CreateGame();
 
                 // opens up a webpage so you can view the game, doing it async so we dont time out
                 // TODO should we really use a TaskFactory or TaskScheduler here?
                 // would we gain anything by doing so?
                 new Thread(() =>
                 {
-                    using (System.Diagnostics.Process.Start(gameState.ViewURL.ToString()))
+                    var g = gameState.Value as GameState;
+                    if (g != null)
                     {
+                        using (System.Diagnostics.Process.Start(g.ViewURL.ToString()))
+                        {
+                        }
                     }
                 }).Start();
 
-                while (!gameState.Finished)
-                {
-                    Func<IEither<GameState, ErrorState>> f = () => 
-                        this.MoveHero(bot.Move(gameState).ToString(), gameState.PlayURL);
-                    
-                    gameState = RetryUntilSuccessful(f, 1000);
-
-                    Logger.Info("completed turn [" + gameState.CurrentTurn.ToString() + "]");
-                }
+                this.MoveHero(gameState, bot);
 
                 Logger.Info("[" + bot.Name + "] finished");
             }
-        }
-
-        internal static T RetryUntilSuccessful<T, U>(Func<IEither<T, U>> f, int wait)
-        {
-            var either = f().Value;
-            if (typeof(U).IsAssignableFrom(either.GetType()))
-            {
-                var u = (U)either;
-                Logger.Error("Error value [" + u.ToString() + "]");
-                Thread.Sleep(wait);
-
-                // TODO exponential backoff
-                return RetryUntilSuccessful<T, U>(f, wait);
-            }
             else
             {
-                return (T)either;
+                throw new ArgumentNullException("bot");
             }
         }
 
-        /// <summary>
-        /// Describes how to send data to the server.
-        /// </summary>
-        /// <param name="webClient">Web client.</param>
-        /// <param name="uri">URI.</param>
-        /// <param name="parameters">Parameters.</param>
-        protected abstract string Upload(WebClient webClient, Uri uri, string parameters);
-
-        /// <summary>
-        /// Sets up the current instance.
-        /// </summary>
-        /// <remarks>Intended to be called in the constructor.</remarks>
-        /// <param name="currentKey">The API key.</param>
-        /// <param name="currentTrainingMode">Mode to use (training or arena).</param>
-        /// <param name="currentTurns">Number of turns.</param>
-        /// <param name="currentServerUrl">URL of vindinium server.</param>
-        /// <param name="currentMap">Map to use.</param>
-        /// <remarks><c>currentMap</c> and <c>currentTurns</c> will be ignored in Arena mode.
-        /// This method is intended to be called from the constructor.</remarks>
-        protected void Setup(string currentKey, Mode currentTrainingMode, int currentTurns, Uri currentServerUrl, Map currentMap)
+        private void Setup(string currentKey, Mode currentTrainingMode, int currentTurns, Uri currentServerUrl, Map currentMap)
         {
+            this.Uploader = new Uploader();
             this.key = currentKey;
             this.trainingMode = currentTrainingMode.ToString().ToLower(CultureInfo.InvariantCulture);
             this.serverURL = currentServerUrl ?? new Uri("http://vindinium.org");
@@ -164,13 +192,7 @@ namespace Vindinium.ServerStuff
             }
         }
 
-        /// <summary>
-        /// Configures the connection from a config file.
-        /// </summary>
-        /// <remarks>
-        /// Intended to be called in the constructor.
-        /// </remarks>
-        protected void ConfigureFromFile()
+        private void ConfigureFromFile()
         {
             var config = (ConfigurationSection)System.Configuration.ConfigurationManager.GetSection("Vindinium");
             this.Setup(config.Key, config.Mode, config.Turns, config.ServerUrl, config.Map);
@@ -205,7 +227,7 @@ namespace Vindinium.ServerStuff
                 client.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
                 try
                 {
-                    string result = this.Upload(client, uri, parameters);
+                    string result = this.Uploader.Upload(client, uri, parameters);
                     var gameResponse = JsonConvert.DeserializeObject<JObject>(result);
                     return new Left<GameState, ErrorState>(new GameState(gameResponse));
                 }
@@ -219,56 +241,31 @@ namespace Vindinium.ServerStuff
             }
         }
 
-        private IEither<GameState, ErrorState> MoveHero(string direction, Uri playURL)
+        private void MoveHero(IEither<GameState, ErrorState> either, IBot bot)
         {
-            string myParameters = "key=" + this.key + "&dir=" + direction;
-            return this.Upload(playURL, myParameters);
-        }
-    }
-
-    /// <summary>
-    /// Server stuff to be used.
-    /// </summary>
-    public sealed class ServerStuff : AbstractServerStuff
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Vindinium.ServerStuff.ServerStuff"/> class.
-        /// </summary>
-        /// <remarks>Use this constructor to configure the class from a config file.</remarks>
-        public ServerStuff()
-        {
-            this.ConfigureFromFile();
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Vindinium.ServerStuff.ServerStuff"/> class.
-        /// </summary>
-        /// <param name="currentKey">The API key.</param>
-        /// <param name="currentTrainingMode">Mode to use (training or arena).</param>
-        /// <param name="currentTurns">Number of turns.</param>
-        /// <param name="currentServerUrl">URL of vindinium server.</param>
-        /// <param name="currentMap">Map to use.</param>
-        /// <remarks>Use this constructor if you don't want to configure the class from a config file.</remarks>
-        public ServerStuff(string currentKey, Mode currentTrainingMode, int currentTurns, Uri currentServerUrl, Map currentMap)
-        {
-            this.Setup(currentKey, currentTrainingMode, currentTurns, currentServerUrl, currentMap);
-        }
-
-        /// <summary>
-        /// Describes how to send data to the server.
-        /// </summary>
-        /// <param name="webClient">Web client.</param>
-        /// <param name="uri">URI.</param>
-        /// <param name="parameters">Parameters.</param>
-        protected override string Upload(WebClient webClient, Uri uri, string parameters)
-        {
-            if (webClient != null)
+            var gameStateMaybe = either.Value;
+            var gameState = gameStateMaybe as GameState;
+            if (gameState == null)
             {
-                return webClient.UploadString(uri, parameters);
+                Logger.Error("Something has gone wrong, cannot continue.");
+                var errorState = gameStateMaybe as ErrorState;
+                if (errorState == null)
+                {
+                    Logger.Error("Don't know what happened.");
+                }
+                else
+                {
+                    Logger.Error(errorState.ErrorText);
+                }
             }
             else
             {
-                throw new ArgumentNullException("webClient");
+                if (!gameState.Finished)
+                {
+                    var direction = bot.Move(gameState);
+                    string myParameters = string.Format(CultureInfo.InvariantCulture, "key={0}&dir={1}", this.key, direction.ToString());
+                    this.MoveHero(this.Upload(gameState.PlayURL, myParameters), bot);
+                }
             }
         }
     }
@@ -291,5 +288,13 @@ namespace Vindinium.ServerStuff
         }
 
         internal string ErrorText { get; private set; }
+    }       
+
+    internal sealed class Uploader : IUploader
+    {
+        public string Upload(WebClient wc, Uri uri, string parameters)
+        {
+            return wc.UploadString(uri, parameters);
+        }
     }
 }

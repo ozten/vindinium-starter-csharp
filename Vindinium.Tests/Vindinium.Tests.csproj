@@ -30,12 +30,17 @@
     <Reference Include="System" />
     <Reference Include="nunit.framework" />
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\Vindinium\bin\Debug\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.6.0.5\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Moq">
+      <HintPath>..\packages\Moq.4.2.1409.1722\lib\net40\Moq.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MessagesTest.cs" />
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="ServerStuffTest.cs" />
+    <Compile Include="Util.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -46,5 +51,8 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="sample.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
