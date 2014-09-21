@@ -182,18 +182,33 @@
 
         internal Uri PlayURL { get; private set; }
 
+        private static bool ValueEqual(GameState left, GameState right)
+        {
+            return ReferenceEquals(left, right) || (!ReferenceEquals(left, null) &&
+                !ReferenceEquals(right, null) &&
+                left.tilesString == right.tilesString && 
+                (ReferenceEquals(left.Dimensions, right.Dimensions) || (!ReferenceEquals(left.Dimensions, null) && left.Dimensions.Equals(right.Dimensions))) && 
+                left.MyHero == right.MyHero && 
+                (ReferenceEquals(left.Heroes, right.Heroes) || (!ReferenceEquals(left.Heroes, null) && left.Heroes.SetEquals(right.Heroes))) &&
+                left.CurrentTurn == right.CurrentTurn &&
+                left.MaxTurns == right.MaxTurns &&
+                left.Finished == right.Finished &&
+                left.ViewURL == right.ViewURL &&
+                left.PlayURL == right.PlayURL);
+        }
+
         /// <param name="left">Left.</param>
         /// <param name="right">Right.</param>
         public static bool operator ==(GameState left, GameState right)
         {
-            return (ReferenceEquals(left, null) && ReferenceEquals(right, null)) || left.Equals(right);
+            return GameState.ValueEqual(left, right);
         }
 
         /// <param name="left">Left.</param>
         /// <param name="right">Right.</param>
         public static bool operator !=(GameState left, GameState right)
         {
-            return (ReferenceEquals(left, null) && !ReferenceEquals(right, null)) || !left.Equals(right);
+            return !GameState.ValueEqual(left, right);
         }
 
         /// <summary>
@@ -238,20 +253,7 @@
         /// <see cref="Vindinium.Messages.GameState"/>; otherwise, <c>false</c>.</returns>
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            var other = obj as GameState;
-            if(ReferenceEquals(obj, null))
-            {
-                return false;
-            }
-            else
-            {
-                return this.tilesString == other.tilesString && ((this.Dimensions == null && other.Dimensions == null) || (this.Dimensions.Item1 == other.Dimensions.Item1 && this.Dimensions.Item2 == other.Dimensions.Item2)) && this.MyHero == other.MyHero && ((this.Heroes == null && other.Heroes == null) || ((this.Heroes.Count == other.Heroes.Count) && !this.Heroes.Except(other.Heroes).Any())) && this.CurrentTurn == other.CurrentTurn && this.MaxTurns == other.MaxTurns && this.Finished == other.Finished && this.ViewURL == other.ViewURL && this.PlayURL == other.PlayURL;
-            }
+            return GameState.ValueEqual(this, obj as GameState);
         }
 
         /// <summary>
@@ -262,14 +264,7 @@
         /// <see cref="Vindinium.Messages.GameState"/>; otherwise, <c>false</c>.</returns>
         public bool Equals(GameState other)
         {
-            if (other == null)
-            {
-                return false;
-            }
-            else
-            {
-                return this.tilesString == other.tilesString && ((this.Dimensions == null && other.Dimensions == null) || (this.Dimensions.Item1 == other.Dimensions.Item1 && this.Dimensions.Item2 == other.Dimensions.Item2)) && this.MyHero == other.MyHero && ((this.Heroes == null && other.Heroes == null) || ((this.Heroes.Count == other.Heroes.Count) && !this.Heroes.Except(other.Heroes).Any())) && this.CurrentTurn == other.CurrentTurn && this.MaxTurns == other.MaxTurns && this.Finished == other.Finished && this.ViewURL == other.ViewURL && this.PlayURL == other.PlayURL;
-            }
+            return GameState.ValueEqual(this, other);
         }
 
         /// <summary>
@@ -480,18 +475,37 @@
             private set;
         }
 
+        private static bool ValueEqual(Hero left, Hero right)
+        {
+            // if left and right are both null then they are both reference-equal
+            return ReferenceEquals(left, right) || (!ReferenceEquals(left, null) && 
+                !ReferenceEquals(right, null) &&
+                left.Id == right.Id &&
+                left.Name == right.Name &&
+                left.Elo == right.Elo &&
+                !ReferenceEquals(left.Pos, null) &&
+                left.Pos.Equals(right.Pos) &&
+                left.Life == right.Life &&
+                left.Gold == right.Gold &&
+                left.MineCount == right.MineCount &&
+                left.SpawnPos != null &&
+                left.SpawnPos.Equals(right.SpawnPos) &&
+                left.Crashed == right.Crashed);
+        }
+
+
         /// <param name="left">Left.</param>
         /// <param name="right">Right.</param>
         public static bool operator ==(Hero left, Hero right)
         {
-            return (ReferenceEquals(left, null) && ReferenceEquals(right, null)) || left.Equals(right);
+            return Hero.ValueEqual(left, right);
         }
 
         /// <param name="left">Left.</param>
         /// <param name="right">Right.</param>
         public static bool operator !=(Hero left, Hero right)
         {
-            return (ReferenceEquals(left, null) && !ReferenceEquals(right, null)) || !left.Equals(right);
+            return !Hero.ValueEqual(left, right);
         }
 
         /// <summary>
@@ -511,21 +525,7 @@
         /// <see cref="Vindinium.Messages.Hero"/>; otherwise, <c>false</c>.</returns>
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            var other = obj as Hero;
-
-            if(ReferenceEquals(other, null))
-            {
-                return false;
-            }
-            else
-            {
-                return this.Id == other.Id && this.Name == other.Name && this.Elo == other.Elo && this.Pos.Item1 == other.Pos.Item1 && this.Pos.Item2 == other.Pos.Item2 && this.Life == other.Life && this.Gold == other.Gold && this.MineCount == other.MineCount && this.SpawnPos.Item1 == other.SpawnPos.Item1 && this.SpawnPos.Item2 == other.SpawnPos.Item2 && this.Crashed == other.Crashed;
-            }
+            return Hero.ValueEqual(this, obj as Hero);
         }
 
         /// <summary>
@@ -536,14 +536,7 @@
         /// <see cref="Vindinium.Messages.Hero"/>; otherwise, <c>false</c>.</returns>
         public bool Equals(Hero other)
         {
-            if (other == null)
-            {
-                return false;
-            }
-            else
-            {
-                return this.Id == other.Id && this.Name == other.Name && this.Elo == other.Elo && this.Pos.Item1 == other.Pos.Item1 && this.Pos.Item2 == other.Pos.Item2 && this.Life == other.Life && this.Gold == other.Gold && this.MineCount == other.MineCount && this.SpawnPos.Item1 == other.SpawnPos.Item1 && this.SpawnPos.Item2 == other.SpawnPos.Item2 && this.Crashed == other.Crashed;
-            }
+            return Hero.ValueEqual(this, other);
         }
 
         /// <summary>
