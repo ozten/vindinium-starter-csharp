@@ -1,13 +1,15 @@
-# Vindinium Starter for C#
+# Vindinium Starter for C Sharp
 
-Code by Mark Tanner
-(put on github by me, ping me for his contact info)
+The orginal version of this was by Mark Tanner and then put on github by ozten - ping them for his contact info. I have since significantly refactored it.
 
-## Run with
+## How to run the example
 
-    client <key> <[training|arena]> <number-of-turns> [server-url]
+The example is configured from `App.config`.
 
-## Examples:
+The keys expected in there are -
+ - `key` - your Vindinium API key
+ - `mode` - `training` or `arena`
+ - `turns` - the number of turns (only used in training mode)
+ - `uri` - what server to use - defaults to `http://vindinium.org/`
+ - `map` - the vindinium map to use.
 
-    client mySecretKey arena 10
-    client mySecretKey training 10 http://localhost:9000
