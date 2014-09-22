@@ -112,6 +112,7 @@
     {
         private Tile[][] tiles;
         private string tilesString;
+        private ISet<Hero> heroes;
 
         internal GameState(JObject gameResponse)
         {
@@ -129,7 +130,7 @@
 
             this.MyHero = new Hero(gameResponse["hero"] as JObject);
             var game = (JObject)gameResponse["game"];
-            this.Heroes = new HashSet<Hero>((game["heroes"] as JArray ?? new JArray()).Select(x => new Hero(x as JObject)));
+            this.heroes = new HashSet<Hero>((game["heroes"] as JArray ?? new JArray()).Select(x => new Hero(x as JObject)));
             this.CurrentTurn = Util.JToken2T<int>(game, "turn");
             this.MaxTurns = Util.JToken2T<int>(game, "maxTurns");
             this.Finished = Util.JToken2T<bool>(game, "finished");
@@ -158,7 +159,12 @@
         /// </summary>
         /// <value>The heroes.</value>
         /// <remarks>TODO look at immutable collections to go here.</remarks>
-        public ISet<Hero> Heroes { get; private set; }
+        public ISet<Hero> Heroes {
+            get
+            {
+                return new HashSet<Hero>(this.heroes);
+            }
+        }
 
         /// <summary>
         /// Gets the number of the current turn.
