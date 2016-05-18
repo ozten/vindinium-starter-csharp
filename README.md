@@ -1,4 +1,4 @@
-# Vindinium Starter for C#
+# Vindinium Starter for C&#35;
 
 Code by Mark Tanner
 (put on github by me, ping me for his contact info)
